@@ -1,0 +1,11 @@
+<mjml>
+  <mj-body background-color="#f5f7fb">
+    <mj-section background-color="#ffffff" padding="32px">
+      <mj-column>
+        <mj-text font-size="22px" font-weight="bold">Your report is ready</mj-text>
+        <mj-text>The {{reportName}} report has finished generating.</mj-text>
+        <mj-button background-color="#2563eb" href="{{reportUrl}}">Download report</mj-button>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
