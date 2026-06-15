@@ -1,5 +1,6 @@
 export * from "./auditLog.schema";
 export * from "./category.schema";
+export * from "./counter.schema";
 export * from "./department.schema";
 export * from "./goodsReceivedNote.schema";
 export * from "./inventoryBalance.schema";

@@ -7,12 +7,15 @@ describe("RBAC permission matrix", () => {
     expect(ROLE_PERMISSIONS[Role.ADMIN]).toContain(Permission.REQUEST_OVERRIDE);
   });
 
-  it("allows store managers to fulfill but not approve requests", () => {
+  it("allows store managers to approve, reject, and fulfill requests", () => {
     expect(ROLE_PERMISSIONS[Role.STORE_MANAGER]).toContain(
       Permission.REQUEST_FULFILL,
     );
-    expect(ROLE_PERMISSIONS[Role.STORE_MANAGER]).not.toContain(
+    expect(ROLE_PERMISSIONS[Role.STORE_MANAGER]).toContain(
       Permission.REQUEST_APPROVE,
+    );
+    expect(ROLE_PERMISSIONS[Role.STORE_MANAGER]).toContain(
+      Permission.REQUEST_REJECT,
     );
   });
 

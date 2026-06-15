@@ -81,6 +81,7 @@ export interface StockChangeInput {
   referenceId?: string;
   notes?: string;
   movementType?: StockMovementType;
+  consumeReservation?: boolean;
 }
 
 export interface StockAdjustmentInput {
@@ -939,7 +940,13 @@ export class InventoryService {
         ? current.availableQuantity ??
           Math.max(0, current.quantity - current.reservedQuantity)
         : 0;
-      if (!current || availableQuantity < input.quantity) {
+      const reservedQuantity = current?.reservedQuantity ?? 0;
+      if (
+        !current ||
+        (input.consumeReservation
+          ? reservedQuantity < input.quantity
+          : availableQuantity < input.quantity)
+      ) {
         throw new ApiError(409, `Insufficient stock for SKU ${item.sku}`);
       }
 
@@ -1032,15 +1039,25 @@ export class InventoryService {
 
       const averageConsumedCost =
         input.quantity > 0 ? totalConsumedCost / input.quantity : 0;
-      const balance = await inventoryRepository.decrementBalance(
-        input.organizationId,
-        input.itemId,
-        input.warehouseId,
-        input.quantity,
-        activeSession,
-        input.zoneId,
-        averageConsumedCost,
-      );
+      const balance = input.consumeReservation
+        ? await inventoryRepository.consumeReservedBalance(
+            input.organizationId,
+            input.itemId,
+            input.warehouseId,
+            input.quantity,
+            averageConsumedCost,
+            activeSession,
+            input.zoneId,
+          )
+        : await inventoryRepository.decrementBalance(
+            input.organizationId,
+            input.itemId,
+            input.warehouseId,
+            input.quantity,
+            activeSession,
+            input.zoneId,
+            averageConsumedCost,
+          );
       if (!balance) throw new ApiError(409, "Stock changed; retry the operation");
 
       let consumed = 0;
@@ -1096,6 +1113,92 @@ export class InventoryService {
       result.item.minStockThreshold,
     );
     return result;
+  }
+
+  async reserveStock(
+    input: {
+      organizationId: string;
+      itemId: string;
+      warehouseId: string;
+      quantity: number;
+      zoneId?: string;
+    },
+    session: ClientSession,
+  ) {
+    const item = await inventoryRepository.findItemDocument(
+      input.organizationId,
+      input.itemId,
+    );
+    if (!item?.isActive) throw new ApiError(404, "Item not found");
+    await this.validateLocation(
+      input.organizationId,
+      input.warehouseId,
+      input.zoneId,
+    );
+    if (item.trackBatches) {
+      const batches = await inventoryRepository.findAvailableBatches(
+        input.organizationId,
+        input.itemId,
+        input.warehouseId,
+        session,
+        input.zoneId,
+        item.valuationMethod,
+      );
+      const batchQuantity = batches.reduce(
+        (total, batch) =>
+          total + (batch.remainingQuantity ?? batch.quantity),
+        0,
+      );
+      if (batchQuantity < input.quantity) {
+        throw new ApiError(
+          409,
+          `Insufficient non-expired batch stock for SKU ${item.sku}`,
+        );
+      }
+    }
+    const balance = await inventoryRepository.reserveBalance(
+      input.organizationId,
+      input.itemId,
+      input.warehouseId,
+      input.quantity,
+      session,
+      input.zoneId,
+    );
+    if (!balance) {
+      throw new ApiError(409, `Insufficient stock for SKU ${item.sku}`);
+    }
+    return {
+      balance,
+      item: {
+        name: item.name,
+        sku: item.sku,
+        averageCost: balance.averageCost ?? 0,
+      },
+    };
+  }
+
+  async releaseReservedStock(
+    input: {
+      organizationId: string;
+      itemId: string;
+      warehouseId: string;
+      quantity: number;
+      zoneId?: string;
+    },
+    session: ClientSession,
+  ) {
+    const balance = await inventoryRepository.releaseReservedBalance(
+      input.organizationId,
+      input.itemId,
+      input.warehouseId,
+      input.quantity,
+      session,
+      input.zoneId,
+    );
+    if (!balance) {
+      throw new ApiError(409, "Stock reservation changed; retry the operation");
+    }
+    return balance;
   }
 
   async manualStockIn(

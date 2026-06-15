@@ -9,6 +9,7 @@
     "start": "node dist/server.js",
     "worker": "tsx src/queue/workers.ts",
     "migrate:module4": "tsx src/scripts/migrate-module4-inventory.ts",
+    "migrate:module5": "tsx src/scripts/migrate-module5-requests.ts",
     "test": "jest --runInBand"
   },
   "dependencies": {

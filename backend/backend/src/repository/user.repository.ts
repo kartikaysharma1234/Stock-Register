@@ -252,6 +252,44 @@ export class UserRepository {
     return UserModel.find(filter);
   }
 
+  findDepartmentApprovers(
+    organizationId: string,
+    departmentId: string,
+  ) {
+    return UserModel.find({
+      organizationId,
+      role: {
+        $in: [Role.ADMIN, Role.SUB_ADMIN, Role.DEPARTMENT_HEAD],
+      },
+      isActive: true,
+      isDeleted: false,
+      $or: [
+        { role: Role.ADMIN },
+        { departmentId },
+        { departmentIds: departmentId },
+      ],
+    });
+  }
+
+  findWarehouseApprovers(
+    organizationId: string,
+    warehouseId: string,
+  ) {
+    return UserModel.find({
+      organizationId,
+      role: {
+        $in: [Role.ADMIN, Role.SUB_ADMIN, Role.STORE_MANAGER],
+      },
+      isActive: true,
+      isDeleted: false,
+      $or: [
+        { role: Role.ADMIN },
+        { warehouseId },
+        { warehouseIds: warehouseId },
+      ],
+    });
+  }
+
   saveRefreshToken(data: {
     userId: string;
     familyId: string;

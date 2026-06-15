@@ -288,7 +288,11 @@ export const ROLE_PERMISSIONS: Readonly<Record<Role, readonly Permission[]>> =
         Permission.STOCK_MOVE,
       ],
       requestReadPermissions,
-      [Permission.REQUEST_FULFILL],
+      [
+        Permission.REQUEST_APPROVE,
+        Permission.REQUEST_REJECT,
+        Permission.REQUEST_FULFILL,
+      ],
       procurementReadPermissions,
       [Permission.PURCHASE_RECEIVE, Permission.GRN_CREATE],
       [Permission.REPORT_READ, Permission.REPORT_EXPORT],
@@ -447,6 +451,19 @@ export enum RequestPriority {
   MEDIUM = "medium",
   HIGH = "high",
   URGENT = "urgent",
+}
+
+export enum RequestAction {
+  CREATED = "created",
+  UPDATED = "updated",
+  SUBMITTED = "submitted",
+  DEPARTMENT_APPROVED = "department_approved",
+  STORE_APPROVED = "store_approved",
+  REJECTED = "rejected",
+  PARTIALLY_FULFILLED = "partially_fulfilled",
+  FULFILLED = "fulfilled",
+  CANCELLED = "cancelled",
+  OVERRIDDEN = "overridden",
 }
 
 export enum BudgetPeriod {

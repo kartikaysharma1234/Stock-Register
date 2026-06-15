@@ -207,9 +207,11 @@ export class OrganisationRepository {
   }
 
   listDepartments(organizationId: string) {
-    return DepartmentModel.find({ organizationId, isActive: true }).sort({
-      name: 1,
-    });
+    return DepartmentModel.find({
+      organizationId,
+      isActive: true,
+      isDeleted: { $ne: true },
+    }).sort({ name: 1 });
   }
 
   updateDepartment(
@@ -218,7 +220,7 @@ export class OrganisationRepository {
     data: Record<string, unknown>,
   ) {
     return DepartmentModel.findOneAndUpdate(
-      { _id: id, organizationId },
+      { _id: id, organizationId, isDeleted: { $ne: true } },
       data,
       { new: true, runValidators: true },
     );

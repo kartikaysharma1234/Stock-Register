@@ -605,6 +605,210 @@ export class InventoryRepository {
     });
   }
 
+  reserveBalance(
+    organizationId: string,
+    itemId: string,
+    warehouseId: string,
+    quantity: number,
+    session: ClientSession,
+    zoneId?: string,
+  ) {
+    return InventoryBalanceModel.findOneAndUpdate(
+      {
+        organizationId,
+        itemId,
+        warehouseId,
+        ...zoneFilter(zoneId),
+        isDeleted: { $ne: true },
+        $expr: {
+          $gte: [
+            {
+              $ifNull: [
+                "$availableQuantity",
+                {
+                  $subtract: [
+                    { $ifNull: ["$quantity", 0] },
+                    { $ifNull: ["$reservedQuantity", 0] },
+                  ],
+                },
+              ],
+            },
+            quantity,
+          ],
+        },
+      },
+      [
+        {
+          $set: {
+            reservedQuantity: {
+              $add: [
+                { $ifNull: ["$reservedQuantity", 0] },
+                quantity,
+              ],
+            },
+            availableQuantity: {
+              $subtract: [
+                {
+                  $ifNull: [
+                    "$availableQuantity",
+                    {
+                      $subtract: [
+                        { $ifNull: ["$quantity", 0] },
+                        { $ifNull: ["$reservedQuantity", 0] },
+                      ],
+                    },
+                  ],
+                },
+                quantity,
+              ],
+            },
+          },
+        },
+      ],
+      { new: true, session },
+    );
+  }
+
+  releaseReservedBalance(
+    organizationId: string,
+    itemId: string,
+    warehouseId: string,
+    quantity: number,
+    session: ClientSession,
+    zoneId?: string,
+  ) {
+    return InventoryBalanceModel.findOneAndUpdate(
+      {
+        organizationId,
+        itemId,
+        warehouseId,
+        ...zoneFilter(zoneId),
+        isDeleted: { $ne: true },
+        $expr: {
+          $gte: [
+            { $ifNull: ["$reservedQuantity", 0] },
+            quantity,
+          ],
+        },
+      },
+      [
+        {
+          $set: {
+            reservedQuantity: {
+              $subtract: [
+                { $ifNull: ["$reservedQuantity", 0] },
+                quantity,
+              ],
+            },
+            availableQuantity: {
+              $subtract: [
+                { $ifNull: ["$quantity", 0] },
+                {
+                  $subtract: [
+                    { $ifNull: ["$reservedQuantity", 0] },
+                    quantity,
+                  ],
+                },
+              ],
+            },
+          },
+        },
+      ],
+      { new: true, session },
+    );
+  }
+
+  consumeReservedBalance(
+    organizationId: string,
+    itemId: string,
+    warehouseId: string,
+    quantity: number,
+    costPerUnit: number,
+    session: ClientSession,
+    zoneId?: string,
+  ) {
+    return InventoryBalanceModel.findOneAndUpdate(
+      {
+        organizationId,
+        itemId,
+        warehouseId,
+        ...zoneFilter(zoneId),
+        isDeleted: { $ne: true },
+        $expr: {
+          $and: [
+            {
+              $gte: [
+                { $ifNull: ["$reservedQuantity", 0] },
+                quantity,
+              ],
+            },
+            {
+              $gte: [
+                { $ifNull: ["$quantity", 0] },
+                quantity,
+              ],
+            },
+          ],
+        },
+      },
+      [
+        {
+          $set: {
+            quantity: {
+              $subtract: [
+                { $ifNull: ["$quantity", 0] },
+                quantity,
+              ],
+            },
+            reservedQuantity: {
+              $subtract: [
+                { $ifNull: ["$reservedQuantity", 0] },
+                quantity,
+              ],
+            },
+            totalValue: {
+              $max: [
+                0,
+                {
+                  $subtract: [
+                    {
+                      $ifNull: [
+                        "$totalValue",
+                        {
+                          $multiply: [
+                            { $ifNull: ["$quantity", 0] },
+                            { $ifNull: ["$averageCost", 0] },
+                          ],
+                        },
+                      ],
+                    },
+                    quantity * costPerUnit,
+                  ],
+                },
+              ],
+            },
+            lastMovementAt: new Date(),
+          },
+        },
+        {
+          $set: {
+            availableQuantity: {
+              $subtract: ["$quantity", "$reservedQuantity"],
+            },
+            averageCost: {
+              $cond: [
+                { $gt: ["$quantity", 0] },
+                { $divide: ["$totalValue", "$quantity"] },
+                0,
+              ],
+            },
+          },
+        },
+      ],
+      { new: true, session },
+    );
+  }
+
   listBalances(
     organizationId: string,
     warehouseId?: string,

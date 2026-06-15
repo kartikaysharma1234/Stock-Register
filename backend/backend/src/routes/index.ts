@@ -5,6 +5,7 @@ import { planRateLimiter } from "../middlewares/rate-limit.middleware";
 import { auditRouter } from "./audit.routes";
 import { authRouter } from "./auth.routes";
 import { categoryRouter } from "./category.routes";
+import { departmentRouter } from "./department.routes";
 import { inventoryRouter } from "./inventory.routes";
 import { itemRouter } from "./item.routes";
 import { notificationRouter } from "./notification.routes";
@@ -57,6 +58,13 @@ apiRouter.use(
   extractOrganization,
   planRateLimiter,
   categoryRouter,
+);
+apiRouter.use(
+  "/departments",
+  authenticate,
+  extractOrganization,
+  planRateLimiter,
+  departmentRouter,
 );
 apiRouter.use(
   "/stock",
