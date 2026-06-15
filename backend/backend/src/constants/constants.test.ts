@@ -46,6 +46,7 @@ describe("canonical constants", () => {
     expect(ROLE_PERMISSIONS[Role.VIEWER]).not.toContain(
       Permission.REQUEST_APPROVE,
     );
+    expect(ROLE_PERMISSIONS[Role.VIEWER]).not.toContain(Permission.USER_READ);
   });
 
   it("defines the required SaaS plan limits", () => {

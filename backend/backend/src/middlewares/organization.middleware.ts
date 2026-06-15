@@ -9,7 +9,23 @@ export const extractOrganization = async (
   next: NextFunction,
 ) => {
   try {
-    const organizationId = req.user?.organizationId;
+    const body =
+      typeof req.body === "object" && req.body !== null
+        ? (req.body as Record<string, unknown>)
+        : {};
+    const queryOrganizationId =
+      typeof req.query.organizationId === "string"
+        ? req.query.organizationId
+        : undefined;
+    const bodyOrganizationId =
+      typeof body.organizationId === "string"
+        ? body.organizationId
+        : undefined;
+    const organizationId =
+      req.user?.organizationId ??
+      (req.user?.role === Role.SUPER_ADMIN
+        ? bodyOrganizationId ?? queryOrganizationId
+        : undefined);
     if (!organizationId) {
       if (req.user?.role === Role.SUPER_ADMIN) return next();
       return next(new ApiError(400, "Organization context is required"));

@@ -1,7 +1,6 @@
 import { randomUUID } from "crypto";
 import { config } from "../config";
-import { NotificationType } from "../constants/status";
-import { Role } from "../constants/roles";
+import { NotificationType, Permission, Role } from "../constants";
 import {
   comparePassword,
   generateSecureToken,
@@ -13,33 +12,35 @@ import {
   generateRefreshToken,
   verifyRefreshToken,
 } from "../helpers/jwt.helper";
+import { IUser } from "../repository/schemas";
 import { userRepository } from "../repository/user.repository";
 import { AuthUser } from "../types/auth";
 import { ApiError } from "../utils/api-error";
 import { auditService } from "./audit.service";
 import { notificationService } from "./notification.service";
+import { permissionService } from "./permission.service";
+import { userService } from "./user.service";
 
-const toAuthUser = (user: {
-  _id: { toString(): string };
-  organizationId?: { toString(): string };
+export interface InviteUserInput {
+  name: string;
+  email: string;
   role: Role;
-  departmentIds: Array<{ toString(): string }>;
-  warehouseIds: Array<{ toString(): string }>;
-}): AuthUser => ({
-  id: user._id.toString(),
-  organizationId: user.organizationId?.toString(),
-  role: user.role,
-  departmentIds: user.departmentIds.map(String),
-  warehouseIds: user.warehouseIds.map(String),
-});
+  customRoleId?: string;
+  permissions?: Permission[];
+  departmentId?: string;
+  warehouseId?: string;
+  departmentIds?: string[];
+  warehouseIds?: string[];
+  organizationId?: string;
+}
 
 export class AuthService {
   async createSession(
-    user: Parameters<typeof toAuthUser>[0],
+    user: IUser,
     ipAddress?: string,
     familyId = randomUUID(),
   ) {
-    const authUser = toAuthUser(user);
+    const authUser = await permissionService.buildAuthUser(user);
     const accessToken = generateAccessToken(authUser);
     const refreshToken = generateRefreshToken(authUser.id, familyId);
     await userRepository.saveRefreshToken({
@@ -62,6 +63,9 @@ export class AuthService {
       !(await comparePassword(password, user.passwordHash))
     ) {
       throw new ApiError(401, "Invalid email or password");
+    }
+    if (!user.emailVerified) {
+      throw new ApiError(403, "Verify your email before signing in");
     }
     user.lastLoginAt = new Date();
     await user.save();
@@ -94,8 +98,8 @@ export class AuthService {
       throw new ApiError(401, "Refresh token reuse detected");
     }
     const user = await userRepository.findById(payload.sub);
-    if (!user?.isActive) {
-      throw new ApiError(401, "User is inactive");
+    if (!user?.isActive || !user.emailVerified) {
+      throw new ApiError(401, "User is inactive or unverified");
     }
     const nextRefreshToken = generateRefreshToken(user.id, stored.familyId);
     const nextHash = hashToken(nextRefreshToken);
@@ -117,10 +121,11 @@ export class AuthService {
       ),
       createdByIp: ipAddress,
     });
+    const authUser = await permissionService.buildAuthUser(user);
     return {
-      accessToken: generateAccessToken(toAuthUser(user)),
+      accessToken: generateAccessToken(authUser),
       refreshToken: nextRefreshToken,
-      user: toAuthUser(user),
+      user: authUser,
     };
   }
 
@@ -130,15 +135,16 @@ export class AuthService {
 
   async forgotPassword(email: string) {
     const user = await userRepository.findByEmail(email);
-    if (!user) return;
+    if (!user?.isActive) return;
     const token = generateSecureToken();
-    await userRepository.update(user.id, user.organizationId?.toString(), {
+    const userId = user._id.toString();
+    await userRepository.update(userId, user.organizationId?.toString(), {
       passwordResetTokenHash: hashToken(token),
       passwordResetExpiresAt: new Date(Date.now() + 60 * 60 * 1000),
     });
     await notificationService.notifyUser({
       organizationId: user.organizationId?.toString(),
-      userId: user.id,
+      userId,
       type: NotificationType.PASSWORD_RESET,
       title: "Reset your Stock Register password",
       message: "A password reset was requested for your account.",
@@ -162,43 +168,63 @@ export class AuthService {
     await userRepository.revokeAllUserTokens(user.id);
   }
 
-  async inviteUser(
-    actor: AuthUser,
-    data: {
-      name: string;
-      email: string;
-      role: Role;
-      departmentIds?: string[];
-      warehouseIds?: string[];
-      organizationId?: string;
-    },
-  ) {
-    const organizationId =
-      actor.role === Role.SUPER_ADMIN
-        ? data.organizationId
-        : actor.organizationId;
-    if (!organizationId && data.role !== Role.SUPER_ADMIN) {
-      throw new ApiError(400, "Organization is required");
-    }
-    if (actor.role !== Role.SUPER_ADMIN && data.role === Role.SUPER_ADMIN) {
-      throw new ApiError(403, "Only a super admin can invite a super admin");
-    }
-    if (await userRepository.findByEmail(data.email)) {
-      throw new ApiError(409, "A user with this email already exists");
-    }
-    const inviteToken = generateSecureToken();
-    const user = await userRepository.create({
-      ...data,
-      organizationId,
-      passwordHash: await hashPassword(generateSecureToken()),
-      emailVerified: false,
-    });
-    await userRepository.update(user.id, organizationId, {
-      invitationTokenHash: hashToken(inviteToken),
-      invitationExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+  async sendEmailVerification(user: IUser) {
+    if (user.emailVerified) return;
+    const token = generateSecureToken();
+    const userId = user._id.toString();
+    await userRepository.update(userId, user.organizationId?.toString(), {
+      emailVerificationTokenHash: hashToken(token),
+      emailVerificationExpiresAt: new Date(
+        Date.now() + 24 * 60 * 60 * 1000,
+      ),
     });
     await notificationService.notifyUser({
-      organizationId,
+      organizationId: user.organizationId?.toString(),
+      userId,
+      type: NotificationType.SYSTEM,
+      title: "Verify your Stock Register email",
+      message: "Verify your email address to activate sign-in.",
+      template: "verifyEmail",
+      variables: {
+        name: user.name,
+        verifyUrl: `${config.appUrl}/verify-email?token=${token}`,
+      },
+    });
+  }
+
+  async verifyEmail(token: string) {
+    const user = await userRepository.findByEmailVerificationToken(
+      hashToken(token),
+    );
+    if (!user) {
+      throw new ApiError(400, "Email verification token is invalid or expired");
+    }
+    user.emailVerified = true;
+    user.emailVerificationTokenHash = undefined;
+    user.emailVerificationExpiresAt = undefined;
+    await user.save();
+    return user;
+  }
+
+  async inviteUser(actor: AuthUser, data: InviteUserInput) {
+    const user = await userService.create(actor, {
+      ...data,
+      password: generateSecureToken(),
+    });
+    const inviteToken = generateSecureToken();
+    await userRepository.update(
+      user.id,
+      user.organizationId?.toString(),
+      {
+        invitedBy: actor.id,
+        invitationTokenHash: hashToken(inviteToken),
+        invitationExpiresAt: new Date(
+          Date.now() + 7 * 24 * 60 * 60 * 1000,
+        ),
+      },
+    );
+    await notificationService.notifyUser({
+      organizationId: user.organizationId?.toString(),
       userId: user.id,
       type: NotificationType.INVITATION,
       title: "You have been invited to Stock Register",
@@ -219,6 +245,7 @@ export class AuthService {
     }
     user.passwordHash = await hashPassword(password);
     user.emailVerified = true;
+    user.isActive = true;
     user.invitationTokenHash = undefined;
     user.invitationExpiresAt = undefined;
     await user.save();

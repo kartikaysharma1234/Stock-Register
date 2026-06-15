@@ -150,7 +150,9 @@ export class OrganisationService {
       throw new ApiError(500, "Organization registration did not complete");
     }
     const { organization, admin, subscription } = registration;
-    const tokens = await authService.createSession(admin, ipAddress);
+    void authService.sendEmailVerification(admin).catch((error) =>
+      logger.error("Failed to queue admin verification email", { error }),
+    );
     await auditService.record(
       {
         actorId: admin.id,
@@ -180,7 +182,12 @@ export class OrganisationService {
       .catch((error) =>
         logger.error("Failed to queue organization welcome email", { error }),
       );
-    return { organization, admin, subscription, tokens };
+    return {
+      organization,
+      admin,
+      subscription,
+      verificationRequired: true,
+    };
   }
 
   async createOrganization(actor: AuthUser, data: Record<string, unknown>) {

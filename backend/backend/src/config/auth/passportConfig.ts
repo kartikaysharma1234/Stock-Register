@@ -1,8 +1,8 @@
 import passport from "passport";
 import { ExtractJwt, Strategy as JwtStrategy } from "passport-jwt";
 import { config } from "..";
-import { authUserFromJwt } from "../../helpers/jwt.helper";
 import { UserModel } from "../../repository/schemas";
+import { permissionService } from "../../services/permission.service";
 
 passport.use(
   new JwtStrategy(
@@ -15,18 +15,14 @@ passport.use(
         if (payload.tokenType !== "access") {
           return done(null, false);
         }
-        const user = await UserModel.findById(payload.sub);
-        if (!user?.isActive) return done(null, false);
-        return done(
-          null,
-          authUserFromJwt({
-            ...payload,
-            role: user.role,
-            organizationId: user.organizationId,
-            departmentIds: user.departmentIds,
-            warehouseIds: user.warehouseIds,
-          }),
-        );
+        const user = await UserModel.findOne({
+          _id: payload.sub,
+          isActive: true,
+          emailVerified: true,
+          isDeleted: false,
+        });
+        if (!user) return done(null, false);
+        return done(null, await permissionService.buildAuthUser(user));
       } catch (error) {
         return done(error, false);
       }

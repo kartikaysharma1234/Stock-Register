@@ -205,6 +205,13 @@ const organizationReadPermissions = [
   Permission.ROLE_READ,
 ] as const;
 
+const organizationReferencePermissions = [
+  Permission.ORGANIZATION_READ,
+  Permission.ORGANISATION_READ,
+  Permission.DEPARTMENT_READ,
+  Permission.WAREHOUSE_READ,
+] as const;
+
 const organizationManagePermissions = [
   Permission.ORGANIZATION_UPDATE,
   Permission.ORGANISATION_MANAGE,
@@ -313,7 +320,7 @@ export const ROLE_PERMISSIONS: Readonly<Record<Role, readonly Permission[]>> =
       assetReadPermissions,
     ),
     [Role.VIEWER]: uniquePermissions(
-      organizationReadPermissions,
+      organizationReferencePermissions,
       inventoryReadPermissions,
       requestReadPermissions,
       procurementReadPermissions,

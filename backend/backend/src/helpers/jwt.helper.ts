@@ -1,6 +1,6 @@
 import jwt, { JwtPayload, SignOptions } from "jsonwebtoken";
 import { config } from "../config";
-import { Role } from "../constants/roles";
+import { Permission, Role } from "../constants";
 import { AuthUser } from "../types/auth";
 
 export interface RefreshTokenPayload extends JwtPayload {
@@ -14,6 +14,10 @@ export const generateAccessToken = (user: AuthUser) =>
     {
       role: user.role,
       organizationId: user.organizationId,
+      customRoleId: user.customRoleId,
+      permissions: user.permissions,
+      departmentId: user.departmentId,
+      warehouseId: user.warehouseId,
       departmentIds: user.departmentIds,
       warehouseIds: user.warehouseIds,
       tokenType: "access",
@@ -49,6 +53,20 @@ export const authUserFromJwt = (payload: JwtPayload): AuthUser => ({
     ? String(payload.organizationId)
     : undefined,
   role: payload.role as Role,
+  customRoleId: payload.customRoleId
+    ? String(payload.customRoleId)
+    : undefined,
+  permissions: Array.isArray(payload.permissions)
+    ? payload.permissions.filter((value): value is Permission =>
+        Object.values(Permission).includes(value as Permission),
+      )
+    : [],
+  departmentId: payload.departmentId
+    ? String(payload.departmentId)
+    : undefined,
+  warehouseId: payload.warehouseId
+    ? String(payload.warehouseId)
+    : undefined,
   departmentIds: Array.isArray(payload.departmentIds)
     ? payload.departmentIds.map(String)
     : [],

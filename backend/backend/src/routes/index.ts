@@ -11,6 +11,7 @@ import { organizationRouter } from "./organization.routes";
 import { procurementRouter } from "./procurement.routes";
 import { reportRouter } from "./report.routes";
 import { requestRouter } from "./request.routes";
+import { roleRouter } from "./role.routes";
 import { userRouter } from "./user.routes";
 
 export const apiRouter = Router();
@@ -24,6 +25,13 @@ apiRouter.use(
   extractOrganization,
   planRateLimiter,
   userRouter,
+);
+apiRouter.use(
+  "/roles",
+  authenticate,
+  extractOrganization,
+  planRateLimiter,
+  roleRouter,
 );
 apiRouter.use(
   "/inventory",

@@ -1,10 +1,14 @@
 import { Types } from "mongoose";
-import { Role } from "../constants/roles";
+import { Permission, Role } from "../constants";
 
 export interface AuthUser {
   id: string;
   organizationId?: string;
   role: Role;
+  customRoleId?: string;
+  permissions: Permission[];
+  departmentId?: string;
+  warehouseId?: string;
   departmentIds: string[];
   warehouseIds: string[];
 }
