@@ -229,9 +229,11 @@ export class OrganisationRepository {
   }
 
   listWarehouses(organizationId: string) {
-    return WarehouseModel.find({ organizationId, isActive: true }).sort({
-      name: 1,
-    });
+    return WarehouseModel.find({
+      organizationId,
+      isActive: true,
+      isDeleted: { $ne: true },
+    }).sort({ name: 1 });
   }
 
   updateWarehouse(
@@ -240,7 +242,7 @@ export class OrganisationRepository {
     data: Record<string, unknown>,
   ) {
     return WarehouseModel.findOneAndUpdate(
-      { _id: id, organizationId },
+      { _id: id, organizationId, isDeleted: { $ne: true } },
       data,
       { new: true, runValidators: true },
     );

@@ -16,3 +16,4 @@ export * from "./subscription.schema";
 export * from "./user.schema";
 export * from "./vendor.schema";
 export * from "./warehouse.schema";
+export * from "./warehouseZone.schema";
