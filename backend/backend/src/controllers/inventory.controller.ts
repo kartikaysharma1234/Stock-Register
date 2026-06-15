@@ -14,8 +14,18 @@ export const inventoryController = {
     );
   },
   async listItems(req: Request, res: Response) {
+    const { organizationId, ...filter } = validatedQuery<{
+      organizationId?: string;
+      search?: string;
+      categoryId?: string;
+      isActive?: boolean;
+    }>(req);
     res.json(
-      await inventoryService.listItems(actorFrom(req), validatedQuery(req)),
+      await inventoryService.listItems(
+        actorFrom(req),
+        organizationId,
+        filter,
+      ),
     );
   },
   async updateItem(req: Request, res: Response) {
@@ -26,7 +36,11 @@ export const inventoryController = {
   },
   async archiveItem(req: Request, res: Response) {
     const { id } = validatedParams<{ id: string }>(req);
-    res.json(await inventoryService.archiveItem(actorFrom(req), id));
+    const { organizationId } = validatedQuery<{
+      organizationId?: string;
+    }>(req);
+    await inventoryService.archiveItem(actorFrom(req), id, organizationId);
+    res.json(null);
   },
   async balances(req: Request, res: Response) {
     const { warehouseId } = validatedQuery<{ warehouseId?: string }>(req);

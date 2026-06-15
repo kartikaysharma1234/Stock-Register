@@ -253,9 +253,11 @@ export class OrganisationRepository {
   }
 
   listCategories(organizationId: string) {
-    return CategoryModel.find({ organizationId, isActive: true }).sort({
-      name: 1,
-    });
+    return CategoryModel.find({
+      organizationId,
+      isActive: true,
+      isDeleted: { $ne: true },
+    }).sort({ name: 1 });
   }
 
   updateCategory(
@@ -264,7 +266,7 @@ export class OrganisationRepository {
     data: Record<string, unknown>,
   ) {
     return CategoryModel.findOneAndUpdate(
-      { _id: id, organizationId },
+      { _id: id, organizationId, isDeleted: { $ne: true } },
       data,
       { new: true, runValidators: true },
     );

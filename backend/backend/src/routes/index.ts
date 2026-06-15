@@ -4,7 +4,9 @@ import { extractOrganization } from "../middlewares/organization.middleware";
 import { planRateLimiter } from "../middlewares/rate-limit.middleware";
 import { auditRouter } from "./audit.routes";
 import { authRouter } from "./auth.routes";
+import { categoryRouter } from "./category.routes";
 import { inventoryRouter } from "./inventory.routes";
+import { itemRouter } from "./item.routes";
 import { notificationRouter } from "./notification.routes";
 import { organisationRouter } from "./organisation.routes";
 import { organizationRouter } from "./organization.routes";
@@ -12,6 +14,7 @@ import { procurementRouter } from "./procurement.routes";
 import { reportRouter } from "./report.routes";
 import { requestRouter } from "./request.routes";
 import { roleRouter } from "./role.routes";
+import { stockRouter } from "./stock.routes";
 import { userRouter } from "./user.routes";
 import { warehouseRouter } from "./warehouse.routes";
 
@@ -40,6 +43,27 @@ apiRouter.use(
   extractOrganization,
   planRateLimiter,
   warehouseRouter,
+);
+apiRouter.use(
+  "/items",
+  authenticate,
+  extractOrganization,
+  planRateLimiter,
+  itemRouter,
+);
+apiRouter.use(
+  "/categories",
+  authenticate,
+  extractOrganization,
+  planRateLimiter,
+  categoryRouter,
+);
+apiRouter.use(
+  "/stock",
+  authenticate,
+  extractOrganization,
+  planRateLimiter,
+  stockRouter,
 );
 apiRouter.use(
   "/inventory",

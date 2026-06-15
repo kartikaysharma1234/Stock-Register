@@ -8,6 +8,7 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
     "worker": "tsx src/queue/workers.ts",
+    "migrate:module4": "tsx src/scripts/migrate-module4-inventory.ts",
     "test": "jest --runInBand"
   },
   "dependencies": {

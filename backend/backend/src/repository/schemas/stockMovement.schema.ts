@@ -1,21 +1,31 @@
-import { Schema, model, Types } from "mongoose";
-import { StockMovementType } from "../../constants/status";
+import { Schema, Types, model } from "mongoose";
+import {
+  StockMovementType,
+  StockReferenceType,
+} from "../../constants";
 
 export interface IStockMovement {
   _id: Types.ObjectId;
   organizationId: Types.ObjectId;
   itemId: Types.ObjectId;
   warehouseId: Types.ObjectId;
+  zoneId?: Types.ObjectId;
   departmentId?: Types.ObjectId;
   batchId?: Types.ObjectId;
   type: StockMovementType;
   quantity: number;
   balanceAfter: number;
-  referenceType?: string;
+  costPerUnit: number;
+  totalCost: number;
+  referenceType?: StockReferenceType | string;
   referenceId?: Types.ObjectId;
-  notes?: string;
+  serialNumbers: string[];
   performedBy: Types.ObjectId;
+  notes?: string;
   occurredAt: Date;
+  isDeleted: boolean;
+  deletedAt?: Date;
+  deletedBy?: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -28,15 +38,33 @@ const stockMovementSchema = new Schema<IStockMovement>(
       required: true,
       index: true,
     },
-    itemId: { type: Schema.Types.ObjectId, ref: "Item", required: true, index: true },
+    itemId: {
+      type: Schema.Types.ObjectId,
+      ref: "Item",
+      required: true,
+      index: true,
+    },
     warehouseId: {
       type: Schema.Types.ObjectId,
       ref: "Warehouse",
       required: true,
       index: true,
     },
-    departmentId: { type: Schema.Types.ObjectId, ref: "Department", index: true },
-    batchId: { type: Schema.Types.ObjectId, ref: "StockBatch" },
+    zoneId: {
+      type: Schema.Types.ObjectId,
+      ref: "WarehouseZone",
+      index: true,
+    },
+    departmentId: {
+      type: Schema.Types.ObjectId,
+      ref: "Department",
+      index: true,
+    },
+    batchId: {
+      type: Schema.Types.ObjectId,
+      ref: "StockBatch",
+      index: true,
+    },
     type: {
       type: String,
       enum: Object.values(StockMovementType),
@@ -45,20 +73,54 @@ const stockMovementSchema = new Schema<IStockMovement>(
     },
     quantity: { type: Number, required: true, min: 0 },
     balanceAfter: { type: Number, required: true, min: 0 },
-    referenceType: String,
-    referenceId: Schema.Types.ObjectId,
-    notes: String,
+    costPerUnit: { type: Number, default: 0, min: 0 },
+    totalCost: { type: Number, default: 0, min: 0 },
+    referenceType: {
+      type: String,
+      enum: Object.values(StockReferenceType),
+      index: true,
+    },
+    referenceId: {
+      type: Schema.Types.ObjectId,
+      index: true,
+    },
+    serialNumbers: {
+      type: [{ type: String, trim: true }],
+      default: [],
+    },
+    notes: { type: String, trim: true, maxlength: 1000 },
     performedBy: {
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      index: true,
     },
     occurredAt: { type: Date, default: Date.now, index: true },
+    isDeleted: { type: Boolean, default: false, index: true },
+    deletedAt: Date,
+    deletedBy: { type: Schema.Types.ObjectId, ref: "User" },
   },
-  { timestamps: true },
+  {
+    timestamps: true,
+    versionKey: false,
+  },
 );
 
-stockMovementSchema.index({ organizationId: 1, occurredAt: -1 });
+stockMovementSchema.index({
+  organizationId: 1,
+  occurredAt: -1,
+  isDeleted: 1,
+});
+stockMovementSchema.index({
+  organizationId: 1,
+  itemId: 1,
+  occurredAt: -1,
+});
+stockMovementSchema.index({
+  organizationId: 1,
+  warehouseId: 1,
+  occurredAt: -1,
+});
 
 export const StockMovementModel = model<IStockMovement>(
   "StockMovement",
