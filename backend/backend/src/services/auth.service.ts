@@ -34,7 +34,7 @@ const toAuthUser = (user: {
 });
 
 export class AuthService {
-  private async issueTokenPair(
+  async createSession(
     user: Parameters<typeof toAuthUser>[0],
     ipAddress?: string,
     familyId = randomUUID(),
@@ -65,7 +65,7 @@ export class AuthService {
     }
     user.lastLoginAt = new Date();
     await user.save();
-    const tokens = await this.issueTokenPair(user, ipAddress);
+    const tokens = await this.createSession(user, ipAddress);
     await auditService.record(
       {
         actorId: user.id,

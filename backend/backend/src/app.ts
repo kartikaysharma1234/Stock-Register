@@ -1,6 +1,6 @@
 import path from "path";
 import cors from "cors";
-import express from "express";
+import express, { Request } from "express";
 import helmet from "helmet";
 import passport from "./config/auth/passportConfig";
 import { config } from "./config";
@@ -17,7 +17,14 @@ export const createApp = () => {
   app.disable("x-powered-by");
   app.use(helmet());
   app.use(cors());
-  app.use(express.json({ limit: "2mb" }));
+  app.use(
+    express.json({
+      limit: "2mb",
+      verify: (req, _res, buffer) => {
+        (req as Request).rawBody = Buffer.from(buffer);
+      },
+    }),
+  );
   app.use(express.urlencoded({ extended: true }));
   app.use(passport.initialize());
   app.use(requestLogger);

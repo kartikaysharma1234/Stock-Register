@@ -21,6 +21,18 @@ const envSchema = z.object({
   SMTP_PASS: z.string().optional(),
   MAIL_FROM: z.string().default("Stock Register <no-reply@example.com>"),
   REPORT_OUTPUT_DIR: z.string().default("reports"),
+  RAZORPAY_KEY_ID: z.string().optional(),
+  RAZORPAY_KEY_SECRET: z.string().optional(),
+  RAZORPAY_WEBHOOK_SECRET: z.string().optional(),
+  RAZORPAY_PRO_PLAN_ID: z.string().optional(),
+  RAZORPAY_ENTERPRISE_PLAN_ID: z.string().optional(),
+  RAZORPAY_PRO_AMOUNT: z.coerce.number().int().nonnegative().default(99900),
+  RAZORPAY_ENTERPRISE_AMOUNT: z.coerce
+    .number()
+    .int()
+    .nonnegative()
+    .default(499900),
+  RAZORPAY_BILLING_CYCLES: z.coerce.number().int().positive().default(12),
 });
 
 const env = envSchema.parse(process.env);
@@ -44,4 +56,18 @@ export const config = {
   },
   mailFrom: env.MAIL_FROM,
   reportOutputDir: env.REPORT_OUTPUT_DIR,
+  razorpay: {
+    keyId: env.RAZORPAY_KEY_ID,
+    keySecret: env.RAZORPAY_KEY_SECRET,
+    webhookSecret: env.RAZORPAY_WEBHOOK_SECRET,
+    planIds: {
+      pro: env.RAZORPAY_PRO_PLAN_ID,
+      enterprise: env.RAZORPAY_ENTERPRISE_PLAN_ID,
+    },
+    amounts: {
+      pro: env.RAZORPAY_PRO_AMOUNT,
+      enterprise: env.RAZORPAY_ENTERPRISE_AMOUNT,
+    },
+    billingCycles: env.RAZORPAY_BILLING_CYCLES,
+  },
 };

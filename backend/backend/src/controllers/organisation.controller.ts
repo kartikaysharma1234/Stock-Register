@@ -1,5 +1,8 @@
 import { Request, Response } from "express";
+import { SubscriptionPlan } from "../constants";
 import { organisationService } from "../services/organisation.service";
+import { ApiError } from "../utils/api-error";
+import { sendSuccess } from "../utils/api-response";
 import {
   actorFrom,
   validatedBody,
@@ -7,6 +10,64 @@ import {
 } from "./controller.utils";
 
 export const organisationController = {
+  async register(req: Request, res: Response) {
+    const result = await organisationService.register(
+      validatedBody(req),
+      req.ip,
+    );
+    return sendSuccess(
+      res,
+      "Organization registered successfully",
+      result,
+      201,
+    );
+  },
+  async me(req: Request, res: Response) {
+    return sendSuccess(
+      res,
+      "Organization retrieved successfully",
+      await organisationService.getOrganization(actorFrom(req)),
+    );
+  },
+  async updateMe(req: Request, res: Response) {
+    return sendSuccess(
+      res,
+      "Organization updated successfully",
+      await organisationService.updateOrganization(
+        actorFrom(req),
+        undefined,
+        validatedBody(req),
+      ),
+    );
+  },
+  async usage(req: Request, res: Response) {
+    return sendSuccess(
+      res,
+      "Organization usage retrieved successfully",
+      await organisationService.getUsage(actorFrom(req)),
+    );
+  },
+  async upgrade(req: Request, res: Response) {
+    const { plan } = validatedBody<{ plan: SubscriptionPlan }>(req);
+    return sendSuccess(
+      res,
+      "Razorpay subscription created successfully",
+      await organisationService.upgrade(actorFrom(req), plan),
+      201,
+    );
+  },
+  async razorpayWebhook(req: Request, res: Response) {
+    const signature = req.get("x-razorpay-signature");
+    if (!signature || !req.rawBody) {
+      throw new ApiError(400, "Razorpay signature and raw body are required");
+    }
+    const result = await organisationService.handleRazorpayWebhook(
+      req.rawBody,
+      signature,
+      req.get("x-razorpay-event-id"),
+    );
+    return sendSuccess(res, "Razorpay webhook processed", result);
+  },
   async createOrganization(req: Request, res: Response) {
     res.status(201).json(
       await organisationService.createOrganization(

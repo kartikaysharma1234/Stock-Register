@@ -1,7 +1,8 @@
 import { Router } from "express";
-import { Permission } from "../constants/permissions";
+import { Permission, PlanFeature } from "../constants";
 import { inventoryController } from "../controllers/inventory.controller";
 import { requirePermissions } from "../middlewares/rbac.middleware";
+import { checkPlanLimit } from "../middlewares/plan-limit.middleware";
 import { validate } from "../middlewares/validate.middleware";
 import {
   balanceListValidation,
@@ -24,6 +25,7 @@ inventoryRouter
   )
   .post(
     requirePermissions(Permission.INVENTORY_MANAGE),
+    checkPlanLimit(PlanFeature.ITEMS),
     validate(createItemValidation),
     inventoryController.createItem,
   );

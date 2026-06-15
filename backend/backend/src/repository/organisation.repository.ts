@@ -1,34 +1,205 @@
+import { ClientSession, Types } from "mongoose";
+import {
+  PLAN_LIMITS,
+  PlanLimits,
+  SubscriptionPlan,
+  SubscriptionStatus,
+} from "../constants";
 import {
   CategoryModel,
   DepartmentModel,
+  IAddress,
+  ItemModel,
   OrganizationModel,
+  SubscriptionModel,
+  UserModel,
   WarehouseModel,
 } from "./schemas";
 
+export interface OrganizationCreateInput {
+  name: string;
+  slug: string;
+  code: string;
+  logo?: string;
+  address?: IAddress;
+  gstin?: string;
+  email?: string;
+  phone?: string;
+  billingEmail: string;
+  subscriptionPlan?: SubscriptionPlan;
+  subscriptionStatus?: SubscriptionStatus;
+  planLimits?: PlanLimits;
+}
+
+export interface OrganizationUsage {
+  users: number;
+  warehouses: number;
+  items: number;
+}
+
 export class OrganisationRepository {
-  createOrganization(data: {
-    name: string;
-    code: string;
-    email?: string;
-    phone?: string;
-    address?: string;
-  }) {
-    return OrganizationModel.create(data);
+  createOrganization(data: OrganizationCreateInput, session?: ClientSession) {
+    const payload = {
+      ...data,
+      subscriptionPlan: data.subscriptionPlan ?? SubscriptionPlan.FREE,
+      subscriptionStatus:
+        data.subscriptionStatus ?? SubscriptionStatus.ACTIVE,
+      planLimits:
+        data.planLimits ?? { ...PLAN_LIMITS[SubscriptionPlan.FREE] },
+    };
+    if (session) {
+      return OrganizationModel.create([payload], { session }).then(
+        ([organization]) => organization,
+      );
+    }
+    return OrganizationModel.create(payload);
   }
 
   findOrganizationById(id: string) {
-    return OrganizationModel.findById(id);
+    return OrganizationModel.findOne({
+      _id: id,
+      isDeleted: false,
+    });
+  }
+
+  findOrganizationBySlug(slug: string) {
+    return OrganizationModel.findOne({
+      slug: slug.toLowerCase(),
+      isDeleted: false,
+    });
+  }
+
+  findOrganizationByRazorpaySubscriptionId(razorpaySubscriptionId: string) {
+    return OrganizationModel.findOne({
+      razorpaySubscriptionId,
+      isDeleted: false,
+    });
   }
 
   listOrganizations() {
-    return OrganizationModel.find().sort({ name: 1 });
+    return OrganizationModel.find({ isDeleted: false }).sort({ name: 1 });
   }
 
-  updateOrganization(id: string, data: Record<string, unknown>) {
-    return OrganizationModel.findByIdAndUpdate(id, data, {
-      new: true,
-      runValidators: true,
-    });
+  updateOrganization(
+    id: string,
+    data: Record<string, unknown>,
+    session?: ClientSession,
+  ) {
+    return OrganizationModel.findOneAndUpdate(
+      { _id: id, isDeleted: false },
+      data,
+      { new: true, runValidators: true, session },
+    );
+  }
+
+  createSubscription(
+    data: {
+      organizationId: string | Types.ObjectId;
+      plan: SubscriptionPlan;
+      status: SubscriptionStatus;
+      startDate: Date;
+      endDate?: Date;
+      amount: number;
+      currency?: string;
+      razorpayOrderId?: string;
+      razorpayPaymentId?: string;
+      razorpaySubscriptionId?: string;
+      invoiceUrl?: string;
+    },
+    session?: ClientSession,
+  ) {
+    if (session) {
+      return SubscriptionModel.create([data], { session }).then(
+        ([subscription]) => subscription,
+      );
+    }
+    return SubscriptionModel.create(data);
+  }
+
+  findCurrentSubscription(organizationId: string) {
+    return SubscriptionModel.findOne({
+      organizationId,
+      status: SubscriptionStatus.ACTIVE,
+      isDeleted: false,
+    }).sort({ createdAt: -1 });
+  }
+
+  findPendingSubscription(organizationId: string) {
+    return SubscriptionModel.findOne({
+      organizationId,
+      status: SubscriptionStatus.PENDING,
+      isDeleted: false,
+    }).sort({ createdAt: -1 });
+  }
+
+  findSubscriptionByRazorpayId(
+    razorpaySubscriptionId: string,
+    session?: ClientSession,
+  ) {
+    return SubscriptionModel.findOne({
+      razorpaySubscriptionId,
+      isDeleted: false,
+    }).session(session ?? null);
+  }
+
+  findActiveFreeSubscription(
+    organizationId: string,
+    session?: ClientSession,
+  ) {
+    return SubscriptionModel.findOne({
+      organizationId,
+      plan: SubscriptionPlan.FREE,
+      status: SubscriptionStatus.ACTIVE,
+      isDeleted: false,
+    }).session(session ?? null);
+  }
+
+  updateSubscriptionByRazorpayId(
+    organizationId: string,
+    razorpaySubscriptionId: string,
+    data: Record<string, unknown>,
+    session?: ClientSession,
+  ) {
+    return SubscriptionModel.findOneAndUpdate(
+      {
+        organizationId,
+        razorpaySubscriptionId,
+        isDeleted: false,
+      },
+      data,
+      { new: true, runValidators: true, session },
+    );
+  }
+
+  expireOtherSubscriptions(
+    organizationId: string,
+    exceptSubscriptionId: string,
+    session?: ClientSession,
+  ) {
+    return SubscriptionModel.updateMany(
+      {
+        organizationId,
+        _id: { $ne: exceptSubscriptionId },
+        status: SubscriptionStatus.ACTIVE,
+        isDeleted: false,
+      },
+      { status: SubscriptionStatus.EXPIRED, endDate: new Date() },
+      { session },
+    );
+  }
+
+  async getUsage(organizationId: string): Promise<OrganizationUsage> {
+    const activeTenantFilter = {
+      organizationId,
+      isActive: true,
+      isDeleted: { $ne: true },
+    };
+    const [users, warehouses, items] = await Promise.all([
+      UserModel.countDocuments(activeTenantFilter),
+      WarehouseModel.countDocuments(activeTenantFilter),
+      ItemModel.countDocuments(activeTenantFilter),
+    ]);
+    return { users, warehouses, items };
   }
 
   createDepartment(organizationId: string, data: Record<string, unknown>) {

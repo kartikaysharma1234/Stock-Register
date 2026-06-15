@@ -1,6 +1,6 @@
 import { ErrorRequestHandler, RequestHandler } from "express";
 import mongoose from "mongoose";
-import { ApiError } from "../utils/api-error";
+import { AppError, ApiError } from "../utils/api-error";
 import { logger } from "../utils/logger";
 
 export const notFoundHandler: RequestHandler = (req, _res, next) => {
@@ -8,15 +8,20 @@ export const notFoundHandler: RequestHandler = (req, _res, next) => {
 };
 
 export const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {
-  if (error instanceof ApiError) {
+  if (error instanceof AppError) {
     res.status(error.statusCode).json({
+      success: false,
       message: error.message,
-      details: error.details,
+      data: error.details ?? null,
     });
     return;
   }
   if (error instanceof mongoose.Error.ValidationError) {
-    res.status(422).json({ message: error.message });
+    res.status(422).json({
+      success: false,
+      message: error.message,
+      data: null,
+    });
     return;
   }
   if (
@@ -25,9 +30,17 @@ export const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {
     "code" in error &&
     error.code === 11000
   ) {
-    res.status(409).json({ message: "A record with this value already exists" });
+    res.status(409).json({
+      success: false,
+      message: "A record with this value already exists",
+      data: null,
+    });
     return;
   }
   logger.error("Unhandled request error", { error });
-  res.status(500).json({ message: "Internal server error" });
+  res.status(500).json({
+    success: false,
+    message: "Internal server error",
+    data: null,
+  });
 };

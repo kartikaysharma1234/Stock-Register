@@ -1,3 +1,4 @@
+import { ClientSession } from "mongoose";
 import { Role } from "../constants/roles";
 import { RefreshTokenModel, UserModel } from "./schemas";
 
@@ -11,7 +12,10 @@ export class UserRepository {
     departmentIds?: string[];
     warehouseIds?: string[];
     emailVerified?: boolean;
-  }) {
+  }, session?: ClientSession) {
+    if (session) {
+      return UserModel.create([data], { session }).then(([user]) => user);
+    }
     return UserModel.create(data);
   }
 

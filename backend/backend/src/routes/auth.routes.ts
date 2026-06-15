@@ -1,7 +1,10 @@
 import { Router } from "express";
-import { Permission } from "../constants/permissions";
+import { Permission, PlanFeature } from "../constants";
 import { authController } from "../controllers/auth.controller";
 import { authenticate } from "../middlewares/auth.middleware";
+import { extractOrganization } from "../middlewares/organization.middleware";
+import { checkPlanLimit } from "../middlewares/plan-limit.middleware";
+import { planRateLimiter } from "../middlewares/rate-limit.middleware";
 import { requirePermissions } from "../middlewares/rbac.middleware";
 import { validate } from "../middlewares/validate.middleware";
 import {
@@ -36,7 +39,10 @@ authRouter.post(
 authRouter.post(
   "/invite",
   authenticate,
+  extractOrganization,
+  planRateLimiter,
   requirePermissions(Permission.USER_MANAGE),
+  checkPlanLimit(PlanFeature.USERS),
   validate(inviteUserValidation),
   authController.invite,
 );

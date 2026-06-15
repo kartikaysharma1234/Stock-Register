@@ -1,7 +1,10 @@
 import { Router } from "express";
-import { Permission } from "../constants/permissions";
+import { Permission, PlanFeature } from "../constants";
 import { organisationController } from "../controllers/organisation.controller";
 import { requirePermissions } from "../middlewares/rbac.middleware";
+import { extractOrganization } from "../middlewares/organization.middleware";
+import { checkPlanLimit } from "../middlewares/plan-limit.middleware";
+import { planRateLimiter } from "../middlewares/rate-limit.middleware";
 import { validate } from "../middlewares/validate.middleware";
 import {
   masterDataUpdateValidation,
@@ -68,7 +71,10 @@ organisationRouter
     organisationController.listWarehouses,
   )
   .post(
+    extractOrganization,
+    planRateLimiter,
     requirePermissions(Permission.MASTER_DATA_MANAGE),
+    checkPlanLimit(PlanFeature.WAREHOUSES),
     validate(masterDataValidation),
     organisationController.createWarehouse,
   );
