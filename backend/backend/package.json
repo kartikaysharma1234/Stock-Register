@@ -11,6 +11,7 @@
     "migrate:module4": "tsx src/scripts/migrate-module4-inventory.ts",
     "migrate:module5": "tsx src/scripts/migrate-module5-requests.ts",
     "migrate:module6": "tsx src/scripts/migrate-module6-procurement.ts",
+    "migrate:module7": "tsx src/scripts/migrate-module7-assets.ts",
     "test": "jest --runInBand"
   },
   "dependencies": {

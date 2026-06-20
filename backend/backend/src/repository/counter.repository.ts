@@ -14,7 +14,9 @@ export const formatCounterNumber = (
   year: number,
   sequence: number,
 ) =>
-  `${prefixes[type]}-${year}-${sequence.toString().padStart(4, "0")}`;
+  type === CounterType.ASSET
+    ? `${prefixes[type]}-${sequence.toString().padStart(4, "0")}`
+    : `${prefixes[type]}-${year}-${sequence.toString().padStart(4, "0")}`;
 
 export class CounterRepository {
   async nextNumber(
@@ -23,7 +25,7 @@ export class CounterRepository {
     session?: ClientSession,
     date = new Date(),
   ) {
-    const year = date.getUTCFullYear();
+    const year = type === CounterType.ASSET ? 2000 : date.getUTCFullYear();
     const counter = await CounterModel.findOneAndUpdate(
       {
         organizationId,

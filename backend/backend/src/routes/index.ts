@@ -2,6 +2,7 @@ import { Router } from "express";
 import { authenticate } from "../middlewares/auth.middleware";
 import { extractOrganization } from "../middlewares/organization.middleware";
 import { planRateLimiter } from "../middlewares/rate-limit.middleware";
+import { assetRouter } from "./asset.routes";
 import { auditRouter } from "./audit.routes";
 import { authRouter } from "./auth.routes";
 import { categoryRouter } from "./category.routes";
@@ -90,6 +91,13 @@ apiRouter.use(
   extractOrganization,
   planRateLimiter,
   requestRouter,
+);
+apiRouter.use(
+  "/assets",
+  authenticate,
+  extractOrganization,
+  planRateLimiter,
+  assetRouter,
 );
 apiRouter.use(
   "/vendors",
