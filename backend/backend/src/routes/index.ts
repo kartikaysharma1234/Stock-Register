@@ -6,17 +6,21 @@ import { auditRouter } from "./audit.routes";
 import { authRouter } from "./auth.routes";
 import { categoryRouter } from "./category.routes";
 import { departmentRouter } from "./department.routes";
+import { grnRouter } from "./grn.routes";
 import { inventoryRouter } from "./inventory.routes";
 import { itemRouter } from "./item.routes";
 import { notificationRouter } from "./notification.routes";
 import { organisationRouter } from "./organisation.routes";
 import { organizationRouter } from "./organization.routes";
+import { paymentRouter } from "./payment.routes";
 import { procurementRouter } from "./procurement.routes";
+import { purchaseOrderRouter } from "./purchaseOrder.routes";
 import { reportRouter } from "./report.routes";
 import { requestRouter } from "./request.routes";
 import { roleRouter } from "./role.routes";
 import { stockRouter } from "./stock.routes";
 import { userRouter } from "./user.routes";
+import { vendorRouter } from "./vendor.routes";
 import { warehouseRouter } from "./warehouse.routes";
 
 export const apiRouter = Router();
@@ -86,6 +90,34 @@ apiRouter.use(
   extractOrganization,
   planRateLimiter,
   requestRouter,
+);
+apiRouter.use(
+  "/vendors",
+  authenticate,
+  extractOrganization,
+  planRateLimiter,
+  vendorRouter,
+);
+apiRouter.use(
+  "/purchase-orders",
+  authenticate,
+  extractOrganization,
+  planRateLimiter,
+  purchaseOrderRouter,
+);
+apiRouter.use(
+  "/grn",
+  authenticate,
+  extractOrganization,
+  planRateLimiter,
+  grnRouter,
+);
+apiRouter.use(
+  "/payments",
+  authenticate,
+  extractOrganization,
+  planRateLimiter,
+  paymentRouter,
 );
 apiRouter.use(
   "/procurement",

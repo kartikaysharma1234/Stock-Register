@@ -10,6 +10,7 @@
     "worker": "tsx src/queue/workers.ts",
     "migrate:module4": "tsx src/scripts/migrate-module4-inventory.ts",
     "migrate:module5": "tsx src/scripts/migrate-module5-requests.ts",
+    "migrate:module6": "tsx src/scripts/migrate-module6-procurement.ts",
     "test": "jest --runInBand"
   },
   "dependencies": {

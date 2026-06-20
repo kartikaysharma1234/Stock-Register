@@ -7,6 +7,7 @@ export * from "./inventoryBalance.schema";
 export * from "./item.schema";
 export * from "./notification.schema";
 export * from "./organization.schema";
+export * from "./payment.schema";
 export * from "./purchaseOrder.schema";
 export * from "./refreshToken.schema";
 export * from "./role.schema";
