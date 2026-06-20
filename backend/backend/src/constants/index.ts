@@ -531,6 +531,7 @@ export enum AuditModule {
   REQUEST = "request",
   PURCHASE = "purchase",
   ASSET = "asset",
+  AUDIT = "audit",
   USER = "user",
   BILLING = "billing",
   AUTH = "auth",

@@ -1,26 +1,33 @@
 import { Router } from "express";
-import { z } from "zod";
 import { Permission } from "../constants/permissions";
 import { auditController } from "../controllers/audit.controller";
 import { requirePermissions } from "../middlewares/rbac.middleware";
 import { validate } from "../middlewares/validate.middleware";
-import { dateString, objectId } from "../validations/common.validation";
+import {
+  auditExportValidation,
+  auditListValidation,
+  auditResourceHistoryValidation,
+} from "../validations/audit.validation";
 
 export const auditRouter = Router();
 
 auditRouter.get(
   "/",
   requirePermissions(Permission.AUDIT_READ),
-  validate(
-    z.object({
-      query: z.object({
-        actorId: objectId.optional(),
-        action: z.string().max(100).optional(),
-        entityType: z.string().max(100).optional(),
-        from: dateString.transform((value) => new Date(value)).optional(),
-        to: dateString.transform((value) => new Date(value)).optional(),
-      }),
-    }),
-  ),
+  validate(auditListValidation),
   auditController.list,
+);
+
+auditRouter.get(
+  "/export",
+  requirePermissions(Permission.AUDIT_EXPORT),
+  validate(auditExportValidation),
+  auditController.export,
+);
+
+auditRouter.get(
+  "/:resourceId",
+  requirePermissions(Permission.AUDIT_READ),
+  validate(auditResourceHistoryValidation),
+  auditController.resourceHistory,
 );
