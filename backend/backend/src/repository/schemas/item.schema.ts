@@ -31,6 +31,7 @@ export interface IItem {
   maxStockThreshold?: number;
   reorderPoint: number;
   reorderQuantity: number;
+  preferredVendorId?: Types.ObjectId;
   valuationMethod: ValuationMethod;
   hsnCode?: string;
   gstRate: number;
@@ -120,6 +121,11 @@ const itemSchema = new Schema<IItem>(
     maxStockThreshold: { type: Number, min: 0 },
     reorderPoint: { type: Number, default: 0, min: 0 },
     reorderQuantity: { type: Number, default: 0, min: 0 },
+    preferredVendorId: {
+      type: Schema.Types.ObjectId,
+      ref: "Vendor",
+      index: true,
+    },
     valuationMethod: {
       type: String,
       enum: Object.values(ValuationMethod),
@@ -159,6 +165,7 @@ itemSchema.index(
   { unique: true, sparse: true },
 );
 itemSchema.index({ organizationId: 1, categoryId: 1, isDeleted: 1 });
+itemSchema.index({ organizationId: 1, preferredVendorId: 1, isDeleted: 1 });
 itemSchema.index({ organizationId: 1, isActive: 1, isDeleted: 1 });
 itemSchema.index({ organizationId: 1, createdAt: -1 });
 itemSchema.index({

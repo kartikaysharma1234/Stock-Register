@@ -33,6 +33,9 @@ const envSchema = z.object({
     .nonnegative()
     .default(499900),
   RAZORPAY_BILLING_CYCLES: z.coerce.number().int().positive().default(12),
+  TWILIO_ACCOUNT_SID: z.string().optional(),
+  TWILIO_AUTH_TOKEN: z.string().optional(),
+  TWILIO_WHATSAPP_FROM: z.string().optional(),
 });
 
 const env = envSchema.parse(process.env);
@@ -69,5 +72,10 @@ export const config = {
       enterprise: env.RAZORPAY_ENTERPRISE_AMOUNT,
     },
     billingCycles: env.RAZORPAY_BILLING_CYCLES,
+  },
+  twilio: {
+    accountSid: env.TWILIO_ACCOUNT_SID,
+    authToken: env.TWILIO_AUTH_TOKEN,
+    whatsappFrom: env.TWILIO_WHATSAPP_FROM,
   },
 };

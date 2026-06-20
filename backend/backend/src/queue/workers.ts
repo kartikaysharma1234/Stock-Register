@@ -14,6 +14,13 @@ import { notificationService } from "../services/notification.service";
 import { logger } from "../utils/logger";
 import { notificationQueue } from "./notification.queue";
 import { reportQueue, ReportJobData } from "./report.queue";
+import {
+  alertQueue,
+  scheduleAlertJobs,
+  WhatsappJobData,
+  whatsappQueue,
+} from "./alert.queue";
+import { registerAlertProcessors } from "./alert.jobs";
 
 notificationQueue.process(async (job) => {
   const html = await compileEmailTemplate(
@@ -127,18 +134,67 @@ reportQueue.process(async (job) => {
   return { outputPath };
 });
 
+const whatsappAddress = (value: string) =>
+  value.startsWith("whatsapp:") ? value : `whatsapp:${value}`;
+
+const sendWhatsapp = async (data: WhatsappJobData) => {
+  const { accountSid, authToken, whatsappFrom } = config.twilio;
+  if (!accountSid || !authToken || !whatsappFrom) {
+    logger.warn("Twilio WhatsApp credentials are not configured", {
+      notificationId: data.notificationId,
+      to: data.to,
+    });
+    return { skipped: true };
+  }
+  const response = await fetch(
+    `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Basic ${Buffer.from(
+          `${accountSid}:${authToken}`,
+        ).toString("base64")}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        From: whatsappAddress(whatsappFrom),
+        To: whatsappAddress(data.to),
+        Body: data.message,
+      }),
+    },
+  );
+  if (!response.ok) {
+    throw new Error(`Twilio WhatsApp request failed: ${response.status}`);
+  }
+  if (data.notificationId) {
+    await notificationRepository.markWhatsappSent(data.notificationId);
+  }
+  return { sent: true };
+};
+
+whatsappQueue.process(async (job) => sendWhatsapp(job.data));
+
+registerAlertProcessors();
+
 notificationQueue.on("failed", (job, error) => {
   logger.error("Notification job failed", { jobId: job.id, error });
 });
 reportQueue.on("failed", (job, error) => {
   logger.error("Report job failed", { jobId: job.id, error });
 });
+whatsappQueue.on("failed", (job, error) => {
+  logger.error("WhatsApp notification job failed", { jobId: job.id, error });
+});
 
 logger.info("Queue workers started");
 
 void mongoose
   .connect(config.mongoUri)
-  .then(() => logger.info("Queue worker connected to MongoDB"))
+  .then(async () => {
+    logger.info("Queue worker connected to MongoDB");
+    await scheduleAlertJobs();
+    logger.info("Recurring alert schedules registered");
+  })
   .catch((error) => {
     logger.error("Queue worker failed to connect to MongoDB", { error });
     process.exit(1);
@@ -148,6 +204,8 @@ const shutdown = async () => {
   await Promise.all([
     notificationQueue.close(),
     reportQueue.close(),
+    alertQueue.close(),
+    whatsappQueue.close(),
     mongoose.disconnect(),
   ]);
   process.exit(0);

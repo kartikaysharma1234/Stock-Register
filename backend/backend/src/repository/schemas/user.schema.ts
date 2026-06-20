@@ -6,6 +6,7 @@ export interface IUser {
   organizationId?: Types.ObjectId;
   name: string;
   email: string;
+  phone?: string;
   passwordHash: string;
   role: Role;
   customRoleId?: Types.ObjectId;
@@ -47,6 +48,7 @@ const userSchema = new Schema<IUser>(
       unique: true,
       index: true,
     },
+    phone: { type: String, trim: true, maxlength: 30 },
     passwordHash: { type: String, required: true, select: false },
     role: {
       type: String,

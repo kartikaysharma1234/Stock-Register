@@ -30,6 +30,7 @@ export class UserRepository {
       organizationId?: string;
       name: string;
       email: string;
+      phone?: string;
       passwordHash: string;
       role: Role;
       customRoleId?: string;

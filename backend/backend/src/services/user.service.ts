@@ -19,6 +19,7 @@ export interface UserCreateInput {
   organizationId?: string;
   name: string;
   email: string;
+  phone?: string;
   password: string;
   role: Role;
   customRoleId?: string;
@@ -32,6 +33,7 @@ export interface UserCreateInput {
 
 export interface UserUpdateInput {
   name?: string;
+  phone?: string | null;
   role?: Role;
   customRoleId?: string | null;
   departmentId?: string | null;
@@ -228,6 +230,7 @@ export class UserService {
       organizationId,
       name: data.name,
       email: data.email,
+      phone: data.phone,
       passwordHash: await hashPassword(data.password),
       role: data.role,
       customRoleId: data.customRoleId,

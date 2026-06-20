@@ -1,0 +1,10 @@
+<mjml>
+  <mj-body background-color="#eff6ff">
+    <mj-section background-color="#ffffff" padding="32px">
+      <mj-column>
+        <mj-text font-size="22px" font-weight="bold" color="#1d4ed8">Asset maintenance due</mj-text>
+        <mj-text>{{assetName}} ({{assetTag}}) is due for maintenance on {{dueDate}}.</mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

@@ -329,7 +329,7 @@ export const ROLE_PERMISSIONS: Readonly<Record<Role, readonly Permission[]>> =
       requestReadPermissions,
       procurementReadPermissions,
       [Permission.REPORT_READ, Permission.AUDIT_READ],
-      [Permission.NOTIFICATION_READ],
+      notificationPermissions,
       assetReadPermissions,
     ),
   });

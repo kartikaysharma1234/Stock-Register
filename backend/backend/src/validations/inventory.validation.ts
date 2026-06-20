@@ -47,6 +47,7 @@ const itemFields = {
   maxStockThreshold: z.coerce.number().min(0).optional(),
   reorderPoint: z.coerce.number().min(0).optional(),
   reorderQuantity: z.coerce.number().min(0).optional(),
+  preferredVendorId: objectId.optional(),
   valuationMethod: z.nativeEnum(ValuationMethod).optional(),
   hsnCode: z.string().trim().max(30).optional(),
   gstRate: z.coerce.number().min(0).max(100).optional(),

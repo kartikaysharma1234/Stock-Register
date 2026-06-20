@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import { createApp } from "./app";
 import { redisClient } from "./caches/redis.cache";
 import { config } from "./config";
+import { alertQueue, whatsappQueue } from "./queue/alert.queue";
 import { notificationQueue } from "./queue/notification.queue";
 import { reportQueue } from "./queue/report.queue";
 import { logger } from "./utils/logger";
@@ -28,6 +29,8 @@ const start = async () => {
         redisClient.quit(),
         notificationQueue.close(),
         reportQueue.close(),
+        alertQueue.close(),
+        whatsappQueue.close(),
       ]);
       process.exit(0);
     });

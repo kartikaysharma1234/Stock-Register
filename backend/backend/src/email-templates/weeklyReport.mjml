@@ -1,0 +1,11 @@
+<mjml>
+  <mj-body background-color="#f5f7fb">
+    <mj-section background-color="#ffffff" padding="32px">
+      <mj-column>
+        <mj-text font-size="22px" font-weight="bold">Weekly inventory report</mj-text>
+        <mj-text>Your {{reportName}} report for {{period}} is ready.</mj-text>
+        <mj-button href="{{reportUrl}}" background-color="#2563eb">Open report</mj-button>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

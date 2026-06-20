@@ -16,6 +16,7 @@ import {
   StockListFilter,
   inventoryRepository,
 } from "../repository/inventory.repository";
+import { procurementRepository } from "../repository/procurement.repository";
 import {
   IBundleComponent,
   IItemVariant,
@@ -45,6 +46,7 @@ export interface ItemInput {
   maxStockThreshold?: number;
   reorderPoint?: number;
   reorderQuantity?: number;
+  preferredVendorId?: string;
   valuationMethod?: ValuationMethod;
   hsnCode?: string;
   gstRate?: number;
@@ -265,6 +267,20 @@ export class InventoryService {
     }
   }
 
+  private async validatePreferredVendor(
+    organizationId: string,
+    preferredVendorId?: string,
+  ) {
+    if (!preferredVendorId) return;
+    const vendor = await procurementRepository.findVendor(
+      organizationId,
+      preferredVendorId,
+    );
+    if (!vendor?.isActive) {
+      throw new ApiError(422, "Preferred vendor is invalid or inactive");
+    }
+  }
+
   private async validateBundle(
     organizationId: string,
     isBundled: boolean,
@@ -311,6 +327,7 @@ export class InventoryService {
   async createItem(actor: AuthUser, data: ItemInput) {
     const organizationId = this.organizationId(actor, data.organizationId);
     await this.validateCategory(organizationId, data.categoryId);
+    await this.validatePreferredVendor(organizationId, data.preferredVendorId);
     this.validateTracking(data.trackBatches, data.trackExpiry);
     await this.validateBundle(
       organizationId,
@@ -321,6 +338,9 @@ export class InventoryService {
       ...data,
       organizationId: new Types.ObjectId(organizationId),
       categoryId: new Types.ObjectId(data.categoryId),
+      preferredVendorId: data.preferredVendorId
+        ? new Types.ObjectId(data.preferredVendorId)
+        : undefined,
       bundleComponents: asBundleComponents(data.bundleComponents),
     });
     await auditService.record(
@@ -377,6 +397,7 @@ export class InventoryService {
     if (data.categoryId) {
       await this.validateCategory(organizationId, data.categoryId);
     }
+    await this.validatePreferredVendor(organizationId, data.preferredVendorId);
     const trackBatches = data.trackBatches ?? before.trackBatches;
     const trackExpiry = data.trackExpiry ?? before.trackExpiry;
     this.validateTracking(trackBatches, trackExpiry);
@@ -420,6 +441,9 @@ export class InventoryService {
     const update: Record<string, unknown> = { ...data };
     if (data.categoryId) {
       update.categoryId = new Types.ObjectId(data.categoryId);
+    }
+    if (data.preferredVendorId) {
+      update.preferredVendorId = new Types.ObjectId(data.preferredVendorId);
     }
     if (data.bundleComponents) {
       update.bundleComponents = asBundleComponents(data.bundleComponents);

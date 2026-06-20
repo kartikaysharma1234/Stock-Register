@@ -18,6 +18,13 @@ const assignments = {
   warehouseIds: z.array(objectId).max(100).optional(),
 };
 
+const phone = z
+  .string()
+  .trim()
+  .min(5)
+  .max(30)
+  .regex(/^\+?[0-9()\s-]+$/, "Invalid phone number");
+
 export const userListValidation = z.object({
   query: z.object({
     organizationId: objectId.optional(),
@@ -44,6 +51,7 @@ export const userCreateValidation = z.object({
     organizationId: objectId.optional(),
     name: z.string().trim().min(2).max(120),
     email: z.string().email(),
+    phone: phone.optional(),
     password,
     role: z.nativeEnum(Role),
     permissions: z.array(z.nativeEnum(Permission)).max(200).optional(),
@@ -58,6 +66,7 @@ export const userUpdateValidation = z.object({
   body: z
     .object({
       name: z.string().trim().min(2).max(120).optional(),
+      phone: phone.nullable().optional(),
       role: z.nativeEnum(Role).optional(),
       customRoleId: objectId.nullable().optional(),
       departmentId: objectId.nullable().optional(),
