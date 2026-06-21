@@ -54,7 +54,22 @@ export const api = axios.create({
   },
 });
 
+const publicAuthPaths = [
+  "api/v1/auth/register",
+  "api/v1/auth/login",
+  "api/v1/auth/forgot-password",
+  "api/v1/auth/reset-password",
+  "api/v1/auth/verify-email",
+  "api/v1/auth/accept-invite",
+  "api/v1/organizations/register",
+];
+
+const isPublicAuthRequest = (url?: string) =>
+  Boolean(url && publicAuthPaths.some((path) => url.startsWith(path)));
+
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+  if (isPublicAuthRequest(config.url)) return config;
+
   const token = tokenStorage.getAccessToken();
   if (!token) return config;
 
