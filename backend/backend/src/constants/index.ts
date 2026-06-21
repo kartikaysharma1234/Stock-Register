@@ -563,6 +563,21 @@ export enum NotificationChannel {
   SLACK = "slack",
 }
 
+export enum ReportKind {
+  STOCK_MOVEMENT = "stock-movement",
+  DEPARTMENT_CONSUMPTION = "department-consumption",
+  STOCK_STATUS = "stock-status",
+  LOW_STOCK = "low-stock",
+  OUT_OF_STOCK = "out-of-stock",
+  INVENTORY_VALUATION = "inventory-valuation",
+  TOP_CONSUMPTION = "top-consumption",
+}
+
+export enum ReportFormat {
+  XLSX = "xlsx",
+  PDF = "pdf",
+}
+
 export enum ReportFrequency {
   NONE = "none",
   DAILY = "daily",

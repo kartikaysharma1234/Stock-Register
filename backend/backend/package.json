@@ -14,6 +14,7 @@
     "migrate:module7": "tsx src/scripts/migrate-module7-assets.ts",
     "migrate:module8": "tsx src/scripts/migrate-module8-audit.ts",
     "migrate:module9": "tsx src/scripts/migrate-module9-notifications.ts",
+    "migrate:module10": "tsx src/scripts/migrate-module10-reporting.ts",
     "test": "jest --runInBand"
   },
   "dependencies": {

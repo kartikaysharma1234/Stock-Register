@@ -5,10 +5,12 @@ import {
   CounterType,
   NotificationType,
   PurchaseOrderStatus,
+  ReportFrequency,
   Role,
 } from "../constants";
 import { counterRepository } from "../repository/counter.repository";
 import { inventoryRepository } from "../repository/inventory.repository";
+import { reportRepository } from "../repository/report.repository";
 import {
   AssetModel,
   DepartmentModel,
@@ -20,6 +22,7 @@ import { userRepository } from "../repository/user.repository";
 import { notificationService } from "../services/notification.service";
 import { logger } from "../utils/logger";
 import { AlertJobData, alertQueue } from "./alert.queue";
+import { reportQueue } from "./report.queue";
 
 interface LowStockAlertRow {
   item: { _id: unknown; name: string; sku: string };
@@ -60,6 +63,47 @@ interface AutoReorderGroup {
     unitCost: number;
   }>;
 }
+
+const reportFilterString = (filters: Record<string, unknown>, key: string) => {
+  const value = filters[key];
+  if (value instanceof Date) return value.toISOString();
+  return typeof value === "string" ? value : undefined;
+};
+
+const reportFilterNumber = (filters: Record<string, unknown>, key: string) => {
+  const value = filters[key];
+  return typeof value === "number" ? value : undefined;
+};
+
+const queueReportFilters = (filters: Record<string, unknown> = {}) => ({
+  from: reportFilterString(filters, "from"),
+  to: reportFilterString(filters, "to"),
+  warehouseId: reportFilterString(filters, "warehouseId"),
+  departmentId: reportFilterString(filters, "departmentId"),
+  itemId: reportFilterString(filters, "itemId"),
+  categoryId: reportFilterString(filters, "categoryId"),
+  limit: reportFilterNumber(filters, "limit"),
+});
+
+const nextReportRunAt = (
+  frequency: ReportFrequency,
+  base = new Date(),
+) => {
+  const next = new Date(base);
+  switch (frequency) {
+    case ReportFrequency.DAILY:
+      next.setUTCDate(next.getUTCDate() + 1);
+      return next;
+    case ReportFrequency.WEEKLY:
+      next.setUTCDate(next.getUTCDate() + 7);
+      return next;
+    case ReportFrequency.MONTHLY:
+      next.setUTCMonth(next.getUTCMonth() + 1);
+      return next;
+    case ReportFrequency.NONE:
+      return undefined;
+  }
+};
 
 const activeOrganizationIds = async (organizationId?: string) => {
   if (organizationId) return [organizationId];
@@ -451,10 +495,35 @@ const processAutoReorder = async (job: Job<AlertJobData>) => {
   return { createdDraftPurchaseOrders };
 };
 
-const processReportScheduler = async () => ({
-  scheduledReports: 0,
-  note: "Saved report scheduling is implemented in Module 10.",
-});
+const processReportScheduler = async (job: Job<AlertJobData>) => {
+  const now = new Date();
+  let scheduledReports = 0;
+  const reports = await reportRepository.dueScheduledReports(
+    now,
+    job.data.organizationId,
+  );
+  for (const report of reports) {
+    const queued = await reportQueue.add({
+      organizationId: report.organizationId.toString(),
+      requestedBy: report.createdBy.toString(),
+      recipients: report.recipients,
+      savedReportId: report.id,
+      kind: report.kind,
+      format: report.format,
+      filters: queueReportFilters(report.filters),
+    });
+    const nextRunAt = nextReportRunAt(report.frequency, now);
+    if (nextRunAt) {
+      await reportRepository.markScheduledRun(
+        report.id,
+        String(queued.id),
+        nextRunAt,
+      );
+    }
+    scheduledReports += 1;
+  }
+  return { scheduledReports };
+};
 
 export const registerAlertProcessors = () => {
   alertQueue.process("lowStockAlertJob", processLowStock);

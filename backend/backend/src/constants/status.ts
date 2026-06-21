@@ -13,6 +13,8 @@ export {
   PaymentTerm,
   PurchaseOrderStatus,
   RequestAction,
+  ReportFormat,
+  ReportKind,
   ReportFrequency,
   RequestPriority,
   RequestStatus,

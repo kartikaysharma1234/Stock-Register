@@ -1,21 +1,23 @@
 import Queue from "bull";
 import { config } from "../config";
-
-export type ReportKind =
-  | "stock-movement"
-  | "department-consumption"
-  | "stock-status";
+import { ReportFormat, ReportKind } from "../constants";
 
 export interface ReportJobData {
   organizationId: string;
   requestedBy: string;
-  recipientEmail: string;
+  recipientEmail?: string;
+  recipients?: string[];
+  savedReportId?: string;
   kind: ReportKind;
-  format: "xlsx" | "pdf";
+  format: ReportFormat;
   filters: {
     from?: string;
     to?: string;
     warehouseId?: string;
+    departmentId?: string;
+    itemId?: string;
+    categoryId?: string;
+    limit?: number;
   };
 }
 

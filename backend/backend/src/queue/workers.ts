@@ -5,7 +5,7 @@ import ExcelJS from "exceljs";
 import PDFDocument from "pdfkit";
 import mongoose from "mongoose";
 import { config } from "../config";
-import { NotificationType } from "../constants/status";
+import { NotificationType, ReportKind } from "../constants/status";
 import { compileEmailTemplate } from "../helpers/compile-email-template";
 import { sendMail } from "../libs/mail";
 import { notificationRepository } from "../repository/notification.repository";
@@ -43,21 +43,38 @@ const loadReportRows = async (data: ReportJobData) => {
     : new Date(0);
   const to = data.filters.to ? new Date(data.filters.to) : new Date();
   switch (data.kind) {
-    case "stock-movement":
+    case ReportKind.STOCK_MOVEMENT:
       return reportRepository.stockMovementSummary(
         data.organizationId,
         from,
         to,
-        data.filters.warehouseId,
+        data.filters,
       );
-    case "department-consumption":
+    case ReportKind.DEPARTMENT_CONSUMPTION:
       return reportRepository.departmentConsumption(
         data.organizationId,
         from,
         to,
+        data.filters,
       );
-    case "stock-status":
-      return reportRepository.stockStatus(data.organizationId);
+    case ReportKind.STOCK_STATUS:
+      return reportRepository.stockStatus(data.organizationId, data.filters);
+    case ReportKind.LOW_STOCK:
+      return reportRepository.lowStock(data.organizationId, data.filters);
+    case ReportKind.OUT_OF_STOCK:
+      return reportRepository.outOfStock(data.organizationId, data.filters);
+    case ReportKind.INVENTORY_VALUATION:
+      return reportRepository.inventoryValuation(
+        data.organizationId,
+        data.filters,
+      );
+    case ReportKind.TOP_CONSUMPTION:
+      return reportRepository.topConsumption(
+        data.organizationId,
+        from,
+        to,
+        data.filters,
+      );
   }
 };
 
@@ -119,6 +136,27 @@ reportQueue.process(async (job) => {
   } else {
     await writePdf(outputPath, job.data.kind, rows);
   }
+  const reportUrl = `${config.appUrl}/generated-reports/${filename}`;
+  const variables = {
+    reportName: job.data.kind,
+    reportUrl,
+  };
+  const html = await compileEmailTemplate("reportReady", variables);
+  const recipients = [
+    ...new Set(
+      job.data.recipients ??
+        (job.data.recipientEmail ? [job.data.recipientEmail] : []),
+    ),
+  ];
+  await Promise.all(
+    recipients.map((recipient) =>
+      sendMail({
+        to: recipient,
+        subject: `Inventory report ready: ${job.data.kind}`,
+        html,
+      }),
+    ),
+  );
   await notificationService.notifyUser({
     organizationId: job.data.organizationId,
     userId: job.data.requestedBy,
@@ -126,10 +164,7 @@ reportQueue.process(async (job) => {
     title: "Inventory report ready",
     message: `${job.data.kind} has finished generating.`,
     template: "reportReady",
-    variables: {
-      reportName: job.data.kind,
-      reportUrl: `${config.appUrl}/generated-reports/${filename}`,
-    },
+    variables,
   });
   return { outputPath };
 });

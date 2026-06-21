@@ -13,6 +13,7 @@ export * from "./payment.schema";
 export * from "./purchaseOrder.schema";
 export * from "./refreshToken.schema";
 export * from "./role.schema";
+export * from "./savedReport.schema";
 export * from "./stockBatch.schema";
 export * from "./stockMovement.schema";
 export * from "./stockRequest.schema";
