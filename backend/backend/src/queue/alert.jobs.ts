@@ -7,6 +7,7 @@ import {
   PurchaseOrderStatus,
   ReportFrequency,
   Role,
+  WebhookEvent,
 } from "../constants";
 import { counterRepository } from "../repository/counter.repository";
 import { inventoryRepository } from "../repository/inventory.repository";
@@ -20,6 +21,7 @@ import {
 } from "../repository/schemas";
 import { userRepository } from "../repository/user.repository";
 import { notificationService } from "../services/notification.service";
+import { webhookService } from "../services/webhook.service";
 import { logger } from "../utils/logger";
 import { AlertJobData, alertQueue } from "./alert.queue";
 import { reportQueue } from "./report.queue";
@@ -167,6 +169,20 @@ const processLowStock = async (job: Job<AlertJobData>) => {
           referenceId: String(row.item._id),
         },
       );
+      await webhookService.emit({
+        organizationId,
+        event: WebhookEvent.STOCK_LOW,
+        payload: {
+          itemId: String(row.item._id),
+          itemName: row.item.name,
+          sku: row.item.sku,
+          warehouseId,
+          warehouseName: row.warehouse.name,
+          availableQuantity: row.availableQuantity,
+          threshold: row.effectiveThreshold,
+          occurredAt: new Date().toISOString(),
+        },
+      });
       sent += users.length;
     }
   }

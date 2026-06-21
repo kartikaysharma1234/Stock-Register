@@ -6,6 +6,7 @@ import { config } from "./config";
 import { alertQueue, whatsappQueue } from "./queue/alert.queue";
 import { notificationQueue } from "./queue/notification.queue";
 import { reportQueue } from "./queue/report.queue";
+import { webhookQueue } from "./queue/webhook.queue";
 import { logger } from "./utils/logger";
 
 const start = async () => {
@@ -31,6 +32,7 @@ const start = async () => {
         reportQueue.close(),
         alertQueue.close(),
         whatsappQueue.close(),
+        webhookQueue.close(),
       ]);
       process.exit(0);
     });

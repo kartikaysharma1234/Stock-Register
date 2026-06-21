@@ -24,6 +24,7 @@ import { stockRouter } from "./stock.routes";
 import { userRouter } from "./user.routes";
 import { vendorRouter } from "./vendor.routes";
 import { warehouseRouter } from "./warehouse.routes";
+import { webhookRouter } from "./webhook.routes";
 
 export const apiRouter = Router();
 
@@ -155,6 +156,13 @@ apiRouter.use(
   extractOrganization,
   planRateLimiter,
   apiKeyRouter,
+);
+apiRouter.use(
+  "/webhooks",
+  authenticate,
+  extractOrganization,
+  planRateLimiter,
+  webhookRouter,
 );
 apiRouter.use(
   "/audit-logs",

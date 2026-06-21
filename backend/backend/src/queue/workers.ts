@@ -11,9 +11,11 @@ import { sendMail } from "../libs/mail";
 import { notificationRepository } from "../repository/notification.repository";
 import { reportRepository } from "../repository/report.repository";
 import { notificationService } from "../services/notification.service";
+import { webhookService } from "../services/webhook.service";
 import { logger } from "../utils/logger";
 import { notificationQueue } from "./notification.queue";
 import { reportQueue, ReportJobData } from "./report.queue";
+import { webhookQueue } from "./webhook.queue";
 import {
   alertQueue,
   scheduleAlertJobs,
@@ -209,6 +211,54 @@ const sendWhatsapp = async (data: WhatsappJobData) => {
 
 whatsappQueue.process(async (job) => sendWhatsapp(job.data));
 
+const responseText = async (response: Response) =>
+  (await response.text()).slice(0, 5000);
+
+webhookQueue.process(async (job) => {
+  const startedAt = Date.now();
+  const { body, requestHeaders, webhook } =
+    await webhookService.deliveryPayload(
+      job.data.deliveryId,
+      job.data.webhookId,
+    );
+  try {
+    const response = await fetch(webhook.url, {
+      method: "POST",
+      headers: requestHeaders,
+      body,
+    });
+    const text = await responseText(response);
+    const durationMs = Date.now() - startedAt;
+    if (!response.ok) {
+      await webhookService.markDeliveryFailure(
+        job.data.deliveryId,
+        durationMs,
+        `Webhook responded with ${response.status}`,
+        requestHeaders,
+        response.status,
+        text,
+      );
+      return { delivered: false, status: response.status };
+    }
+    await webhookService.markDeliverySuccess(
+      job.data.deliveryId,
+      durationMs,
+      response.status,
+      text,
+      requestHeaders,
+    );
+    return { delivered: true, status: response.status };
+  } catch (error) {
+    await webhookService.markDeliveryFailure(
+      job.data.deliveryId,
+      Date.now() - startedAt,
+      error instanceof Error ? error.message : "Webhook delivery failed",
+      requestHeaders,
+    );
+    return { delivered: false };
+  }
+});
+
 registerAlertProcessors();
 
 notificationQueue.on("failed", (job, error) => {
@@ -219,6 +269,9 @@ reportQueue.on("failed", (job, error) => {
 });
 whatsappQueue.on("failed", (job, error) => {
   logger.error("WhatsApp notification job failed", { jobId: job.id, error });
+});
+webhookQueue.on("failed", (job, error) => {
+  logger.error("Webhook delivery job failed", { jobId: job.id, error });
 });
 
 logger.info("Queue workers started");
@@ -241,6 +294,7 @@ const shutdown = async () => {
     reportQueue.close(),
     alertQueue.close(),
     whatsappQueue.close(),
+    webhookQueue.close(),
     mongoose.disconnect(),
   ]);
   process.exit(0);

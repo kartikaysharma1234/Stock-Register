@@ -1,6 +1,7 @@
 import { RequestHandler, Response } from "express";
-import { AuditModule } from "../constants";
+import { AuditModule, WebhookEvent } from "../constants";
 import { auditService, inferAuditModule } from "../services/audit.service";
+import { webhookService } from "../services/webhook.service";
 import { logger } from "../utils/logger";
 
 const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
@@ -84,6 +85,56 @@ const moduleForRequest = (resourceType: string) => {
   return resourceType === "AuditLog" ? AuditModule.AUDIT : module;
 };
 
+const webhookEventFromRequest = (
+  method: string,
+  segments: string[],
+  statusCode: number,
+) => {
+  if (statusCode >= 400) return undefined;
+  const [resource, idOrAction, action] = segments;
+  if (resource === "stock" && method === "POST") {
+    return WebhookEvent.STOCK_UPDATED;
+  }
+  if (resource === "inventory" && method === "POST") {
+    return WebhookEvent.STOCK_UPDATED;
+  }
+  if (resource === "requests" && method === "POST" && !idOrAction) {
+    return WebhookEvent.REQUEST_CREATED;
+  }
+  if (resource === "requests" && method === "POST" && action === "approve") {
+    return WebhookEvent.REQUEST_APPROVED;
+  }
+  if (resource === "requests" && method === "POST" && action === "fulfill") {
+    return WebhookEvent.REQUEST_FULFILLED;
+  }
+  if (resource === "purchase-orders" && method === "POST" && !idOrAction) {
+    return WebhookEvent.PO_CREATED;
+  }
+  if (
+    resource === "purchase-orders" &&
+    method === "POST" &&
+    action === "approve"
+  ) {
+    return WebhookEvent.PO_APPROVED;
+  }
+  if (resource === "purchase-orders" && method === "POST" && action === "grn") {
+    return WebhookEvent.GRN_RECEIVED;
+  }
+  if (resource === "assets" && method === "POST" && action === "assign") {
+    return WebhookEvent.ASSET_ASSIGNED;
+  }
+  if (resource === "assets" && method === "POST" && action === "return") {
+    return WebhookEvent.ASSET_RETURNED;
+  }
+  if (resource === "users" && method === "POST") {
+    return WebhookEvent.USER_INVITED;
+  }
+  if (resource === "payments" && method === "POST") {
+    return WebhookEvent.PAYMENT_RECORDED;
+  }
+  return undefined;
+};
+
 const wrapResponse = (res: Response) => {
   const originalJson = res.json.bind(res);
   const originalSend = res.send.bind(res);
@@ -110,6 +161,8 @@ export const auditRequest: RequestHandler = (req, res, next) => {
     const segments = pathSegments(req.originalUrl);
     const resourceType = resourceTypeFromPath(segments);
     const resourceId = resourceIdFromPath(segments);
+    const sanitizedRequest = sanitize(req.body);
+    const sanitizedResponse = sanitize(responseBody());
     void auditService
       .record(
         {
@@ -123,8 +176,8 @@ export const auditRequest: RequestHandler = (req, res, next) => {
           module: moduleForRequest(resourceType),
           entityType: resourceType,
           entityId: resourceId,
-          before: sanitize(req.body),
-          after: sanitize(responseBody()),
+          before: sanitizedRequest,
+          after: sanitizedResponse,
           metadata: {
             path: req.originalUrl,
             statusCode: res.statusCode,
@@ -132,6 +185,29 @@ export const auditRequest: RequestHandler = (req, res, next) => {
         },
       )
       .catch((error) => logger.error("Failed to write audit log", { error }));
+    const event = webhookEventFromRequest(req.method, segments, res.statusCode);
+    if (event && req.user.organizationId) {
+      void webhookService
+        .emit({
+          organizationId: req.user.organizationId,
+          event,
+          payload: {
+            event,
+            resourceType,
+            resourceId,
+            method: req.method,
+            path: req.originalUrl,
+            statusCode: res.statusCode,
+            actorId: req.user.id,
+            request: sanitizedRequest,
+            response: sanitizedResponse,
+            occurredAt: new Date().toISOString(),
+          },
+        })
+        .catch((error) =>
+          logger.error("Failed to enqueue webhook event", { error }),
+        );
+    }
   });
   next();
 };

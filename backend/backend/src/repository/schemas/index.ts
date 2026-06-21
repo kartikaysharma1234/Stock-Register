@@ -23,3 +23,4 @@ export * from "./user.schema";
 export * from "./vendor.schema";
 export * from "./warehouse.schema";
 export * from "./warehouseZone.schema";
+export * from "./webhook.schema";
