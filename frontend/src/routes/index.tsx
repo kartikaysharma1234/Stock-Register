@@ -10,11 +10,41 @@ import {
 import { MainWindow } from "../components/layouts/MainWindow";
 import { AuthPage } from "../pages/Auth/AuthPage";
 import { DashboardPage } from "../pages/Dashboard/DashboardPage";
-import { PlaceholderPage } from "../pages/Placeholder/PlaceholderPage";
+import { BillingSettingsPage } from "../pages/Modules/BillingSettingsPage";
+import { CustomReportPage } from "../pages/Modules/CustomReportPage";
+import { InventoryHubPage } from "../pages/Modules/InventoryHubPage";
+import { ModuleDetailPage } from "../pages/Modules/ModuleDetailPage";
+import { ModuleFormPage } from "../pages/Modules/ModuleFormPage";
+import { ModuleListPage } from "../pages/Modules/ModuleListPage";
+import { NotificationPreferencesPage } from "../pages/Modules/NotificationPreferencesPage";
+import { OrganizationSettingsPage } from "../pages/Modules/OrganizationSettingsPage";
+import { RelationPage } from "../pages/Modules/RelationPage";
+import { ReportPage } from "../pages/Modules/ReportPage";
+import { ReportsHubPage } from "../pages/Modules/ReportsHubPage";
+import { ScanPage } from "../pages/Modules/ScanPage";
+import { SettingsHomePage } from "../pages/Modules/SettingsHomePage";
+import { StockActionsPage } from "../pages/Modules/StockActionsPage";
+import { moduleConfigs, relationConfigs, reportConfigs } from "../pages/Modules/moduleConfigs";
 import { ProtectedRoute } from "./ProtectedRoute";
 
-const placeholder = (title: string, moduleName?: string) => (
-  <PlaceholderPage moduleName={moduleName} title={title} />
+const list = (key: keyof typeof moduleConfigs) => (
+  <ModuleListPage config={moduleConfigs[key]} />
+);
+
+const detail = (key: keyof typeof moduleConfigs, backTo: string) => (
+  <ModuleDetailPage backTo={backTo} config={moduleConfigs[key]} />
+);
+
+const form = (key: keyof typeof moduleConfigs, backTo: string) => (
+  <ModuleFormPage backTo={backTo} config={moduleConfigs[key]} />
+);
+
+const relation = (key: keyof typeof relationConfigs) => (
+  <RelationPage config={relationConfigs[key]} />
+);
+
+const report = (key: keyof typeof reportConfigs) => (
+  <ReportPage config={reportConfigs[key]} />
 );
 
 export const router = createBrowserRouter([
@@ -93,70 +123,82 @@ export const router = createBrowserRouter([
     ),
     children: [
       { path: "/dashboard", element: <DashboardPage /> },
-      { path: "/inventory", element: placeholder("Inventory", "Inventory") },
-      { path: "/inventory/items", element: placeholder("Items", "Inventory") },
-      { path: "/inventory/items/new", element: placeholder("New Item", "Inventory") },
-      { path: "/inventory/items/:id", element: placeholder("Item Detail", "Inventory") },
-      { path: "/inventory/categories", element: placeholder("Categories", "Inventory") },
-      { path: "/inventory/stock", element: placeholder("Stock Levels", "Inventory") },
-      { path: "/inventory/movements", element: placeholder("Movements", "Inventory") },
-      { path: "/inventory/low-stock", element: placeholder("Low Stock", "Inventory") },
-      { path: "/inventory/expiring", element: placeholder("Expiring Stock", "Inventory") },
-      { path: "/inventory/dead-stock", element: placeholder("Dead Stock", "Inventory") },
-      { path: "/inventory/scan", element: placeholder("Barcode Scan", "Inventory") },
-      { path: "/warehouses", element: placeholder("Warehouses", "Warehouses") },
-      { path: "/warehouses/new", element: placeholder("New Warehouse", "Warehouses") },
-      { path: "/warehouses/:id", element: placeholder("Warehouse Detail", "Warehouses") },
-      { path: "/warehouses/:id/zones", element: placeholder("Warehouse Zones", "Warehouses") },
-      { path: "/warehouses/:id/stock", element: placeholder("Warehouse Stock", "Warehouses") },
-      { path: "/requests", element: placeholder("Requests", "Requests") },
-      { path: "/requests/new", element: placeholder("New Request", "Requests") },
-      { path: "/requests/:id", element: placeholder("Request Detail", "Requests") },
-      { path: "/requests/pending", element: placeholder("Pending Approvals", "Requests") },
-      { path: "/departments", element: placeholder("Departments", "Departments") },
-      { path: "/departments/new", element: placeholder("New Department", "Departments") },
-      { path: "/departments/:id", element: placeholder("Department Detail", "Departments") },
-      { path: "/departments/:id/budget", element: placeholder("Department Budget", "Departments") },
-      { path: "/vendors", element: placeholder("Vendors", "Vendors") },
-      { path: "/vendors/new", element: placeholder("New Vendor", "Vendors") },
-      { path: "/vendors/:id", element: placeholder("Vendor Detail", "Vendors") },
-      { path: "/vendors/compare", element: placeholder("Vendor Compare", "Vendors") },
-      { path: "/purchase-orders", element: placeholder("Purchase Orders", "Purchase Orders") },
-      { path: "/purchase-orders/new", element: placeholder("New Purchase Order", "Purchase Orders") },
-      { path: "/purchase-orders/:id", element: placeholder("Purchase Order Detail", "Purchase Orders") },
-      { path: "/grn", element: placeholder("GRN", "GRN") },
-      { path: "/grn/:id", element: placeholder("GRN Detail", "GRN") },
-      { path: "/payments", element: placeholder("Payments", "Payments") },
-      { path: "/assets", element: placeholder("Assets", "Assets") },
-      { path: "/assets/new", element: placeholder("New Asset", "Assets") },
-      { path: "/assets/:id", element: placeholder("Asset Detail", "Assets") },
-      { path: "/assets/due-maintenance", element: placeholder("Due Maintenance", "Assets") },
-      { path: "/reports", element: placeholder("Reports", "Reports") },
-      { path: "/reports/stock-summary", element: placeholder("Stock Summary", "Reports") },
-      { path: "/reports/stock-movements", element: placeholder("Stock Movements", "Reports") },
-      { path: "/reports/department-consumption", element: placeholder("Department Consumption", "Reports") },
-      { path: "/reports/low-stock", element: placeholder("Low Stock Report", "Reports") },
-      { path: "/reports/dead-stock", element: placeholder("Dead Stock Report", "Reports") },
-      { path: "/reports/expiry", element: placeholder("Expiry Report", "Reports") },
-      { path: "/reports/valuation", element: placeholder("Inventory Valuation", "Reports") },
-      { path: "/reports/purchase-orders", element: placeholder("Purchase Orders Report", "Reports") },
-      { path: "/reports/vendor-performance", element: placeholder("Vendor Performance", "Reports") },
-      { path: "/reports/request-fulfillment", element: placeholder("Request Fulfillment", "Reports") },
-      { path: "/reports/asset-utilization", element: placeholder("Asset Utilization", "Reports") },
-      { path: "/reports/budget-utilization", element: placeholder("Budget Utilization", "Reports") },
-      { path: "/reports/audit-summary", element: placeholder("Audit Summary", "Reports") },
-      { path: "/reports/custom", element: placeholder("Custom Report", "Reports") },
-      { path: "/reports/saved", element: placeholder("Saved Reports", "Reports") },
-      { path: "/audit-logs", element: placeholder("Audit Logs", "Audit") },
-      { path: "/notifications", element: placeholder("Notifications", "Notifications") },
-      { path: "/settings", element: placeholder("Settings", "Settings") },
-      { path: "/settings/organization", element: placeholder("Organization Settings", "Settings") },
-      { path: "/settings/users", element: placeholder("User Settings", "Settings") },
-      { path: "/settings/roles", element: placeholder("Role Settings", "Settings") },
-      { path: "/settings/billing", element: placeholder("Billing", "Settings") },
-      { path: "/settings/api-keys", element: placeholder("API Keys", "Settings") },
-      { path: "/settings/webhooks", element: placeholder("Webhooks", "Settings") },
-      { path: "/settings/notifications", element: placeholder("Notification Settings", "Settings") },
+      { path: "/inventory", element: <InventoryHubPage /> },
+      { path: "/inventory/items", element: list("items") },
+      { path: "/inventory/items/new", element: form("items", "/inventory/items") },
+      { path: "/inventory/items/:id", element: detail("items", "/inventory/items") },
+      { path: "/inventory/categories", element: list("categories") },
+      { path: "/inventory/stock", element: list("stockLevels") },
+      { path: "/inventory/movements", element: list("movements") },
+      { path: "/inventory/low-stock", element: list("lowStock") },
+      { path: "/inventory/expiring", element: list("expiring") },
+      { path: "/inventory/dead-stock", element: list("deadStock") },
+      { path: "/inventory/scan", element: <ScanPage /> },
+      { path: "/inventory/transfer", element: <StockActionsPage kind="transfer" /> },
+      { path: "/inventory/reconcile", element: <StockActionsPage kind="reconcile" /> },
+      { path: "/warehouses", element: list("warehouses") },
+      { path: "/warehouses/new", element: form("warehouses", "/warehouses") },
+      { path: "/warehouses/:id", element: detail("warehouses", "/warehouses") },
+      { path: "/warehouses/:id/zones", element: relation("warehouseZones") },
+      { path: "/warehouses/:id/stock", element: relation("warehouseStock") },
+      { path: "/requests", element: list("requests") },
+      { path: "/requests/new", element: form("requests", "/requests") },
+      { path: "/requests/pending", element: list("pendingRequests") },
+      { path: "/requests/:id", element: detail("requests", "/requests") },
+      { path: "/departments", element: list("departments") },
+      { path: "/departments/new", element: form("departments", "/departments") },
+      { path: "/departments/:id", element: detail("departments", "/departments") },
+      { path: "/departments/:id/budget", element: relation("departmentBudget") },
+      { path: "/vendors", element: list("vendors") },
+      { path: "/vendors/new", element: form("vendors", "/vendors") },
+      { path: "/vendors/compare", element: report("vendorPerformance") },
+      { path: "/vendors/:id", element: detail("vendors", "/vendors") },
+      { path: "/vendors/:id/orders", element: relation("vendorOrders") },
+      { path: "/vendors/:id/payments", element: relation("vendorPayments") },
+      { path: "/purchase-orders", element: list("purchaseOrders") },
+      { path: "/purchase-orders/new", element: form("purchaseOrders", "/purchase-orders") },
+      { path: "/purchase-orders/:id", element: detail("purchaseOrders", "/purchase-orders") },
+      { path: "/grn", element: list("grn") },
+      { path: "/grn/:id", element: detail("grn", "/grn") },
+      { path: "/payments", element: list("payments") },
+      { path: "/payments/new", element: form("payments", "/payments") },
+      { path: "/assets", element: list("assets") },
+      { path: "/assets/new", element: form("assets", "/assets") },
+      { path: "/assets/due-maintenance", element: list("dueMaintenance") },
+      { path: "/assets/:id", element: detail("assets", "/assets") },
+      { path: "/assets/:id/history", element: relation("assetHistory") },
+      { path: "/reports", element: <ReportsHubPage /> },
+      { path: "/reports/stock-summary", element: report("stockSummary") },
+      { path: "/reports/stock-movements", element: report("stockMovements") },
+      { path: "/reports/department-consumption", element: report("departmentConsumption") },
+      { path: "/reports/low-stock", element: report("lowStock") },
+      { path: "/reports/dead-stock", element: report("deadStock") },
+      { path: "/reports/expiry", element: report("expiry") },
+      { path: "/reports/valuation", element: report("valuation") },
+      { path: "/reports/purchase-orders", element: report("purchaseOrders") },
+      { path: "/reports/vendor-performance", element: report("vendorPerformance") },
+      { path: "/reports/request-fulfillment", element: report("requestFulfillment") },
+      { path: "/reports/asset-utilization", element: report("assetUtilization") },
+      { path: "/reports/budget-utilization", element: report("budgetUtilization") },
+      { path: "/reports/audit-summary", element: report("auditSummary") },
+      { path: "/reports/custom", element: <CustomReportPage /> },
+      { path: "/reports/saved", element: report("saved") },
+      { path: "/audit-logs", element: list("auditLogs") },
+      { path: "/notifications", element: list("notifications") },
+      { path: "/settings", element: <SettingsHomePage /> },
+      { path: "/settings/organization", element: <OrganizationSettingsPage /> },
+      { path: "/settings/users", element: list("users") },
+      { path: "/settings/users/new", element: form("users", "/settings/users") },
+      { path: "/settings/roles", element: list("roles") },
+      { path: "/settings/roles/new", element: form("roles", "/settings/roles") },
+      { path: "/settings/billing", element: <BillingSettingsPage /> },
+      { path: "/settings/api-keys", element: list("apiKeys") },
+      { path: "/settings/api-keys/new", element: form("apiKeys", "/settings/api-keys") },
+      { path: "/settings/webhooks", element: list("webhooks") },
+      { path: "/settings/webhooks/new", element: form("webhooks", "/settings/webhooks") },
+      { path: "/settings/webhooks/:id", element: detail("webhooks", "/settings/webhooks") },
+      { path: "/settings/webhooks/:id/deliveries", element: relation("webhookDeliveries") },
+      { path: "/settings/notifications", element: <NotificationPreferencesPage /> },
     ],
   },
   { path: "*", element: <Navigate replace to="/dashboard" /> },
