@@ -1,0 +1,260 @@
+{
+  "auth": {
+    "register": { "url": "api/v1/organizations/register", "method": "POST" },
+    "legacyRegister": { "url": "api/v1/auth/register", "method": "POST" },
+    "login": { "url": "api/v1/auth/login", "method": "POST" },
+    "logout": { "url": "api/v1/auth/logout", "method": "POST" },
+    "refreshToken": { "url": "api/v1/auth/refresh-token", "method": "POST" },
+    "refresh": { "url": "api/v1/auth/refresh", "method": "POST" },
+    "forgotPassword": {
+      "url": "api/v1/auth/forgot-password",
+      "method": "POST"
+    },
+    "resetPassword": { "url": "api/v1/auth/reset-password", "method": "POST" },
+    "verifyEmail": { "url": "api/v1/auth/verify-email", "method": "POST" },
+    "invite": { "url": "api/v1/auth/invite", "method": "POST" },
+    "acceptInvite": { "url": "api/v1/auth/accept-invite", "method": "POST" }
+  },
+  "organization": {
+    "getMe": { "url": "api/v1/organizations/me", "method": "GET" },
+    "updateMe": { "url": "api/v1/organizations/me", "method": "PUT" },
+    "upgrade": { "url": "api/v1/organizations/upgrade", "method": "POST" },
+    "usage": { "url": "api/v1/organizations/usage", "method": "GET" },
+    "razorpayWebhook": {
+      "url": "api/v1/organizations/webhook/razorpay",
+      "method": "POST"
+    }
+  },
+  "users": {
+    "list": { "url": "api/v1/users", "method": "GET" },
+    "create": { "url": "api/v1/users", "method": "POST" },
+    "getById": { "url": "api/v1/users/:id", "method": "GET" },
+    "update": { "url": "api/v1/users/:id", "method": "PUT" },
+    "patch": { "url": "api/v1/users/:id", "method": "PATCH" },
+    "delete": { "url": "api/v1/users/:id", "method": "DELETE" },
+    "updatePermissions": {
+      "url": "api/v1/users/:id/permissions",
+      "method": "PUT"
+    }
+  },
+  "roles": {
+    "list": { "url": "api/v1/roles", "method": "GET" },
+    "create": { "url": "api/v1/roles", "method": "POST" },
+    "update": { "url": "api/v1/roles/:id", "method": "PUT" },
+    "delete": { "url": "api/v1/roles/:id", "method": "DELETE" }
+  },
+  "warehouses": {
+    "list": { "url": "api/v1/warehouses", "method": "GET" },
+    "create": { "url": "api/v1/warehouses", "method": "POST" },
+    "getById": { "url": "api/v1/warehouses/:id", "method": "GET" },
+    "update": { "url": "api/v1/warehouses/:id", "method": "PUT" },
+    "delete": { "url": "api/v1/warehouses/:id", "method": "DELETE" },
+    "getZones": { "url": "api/v1/warehouses/:id/zones", "method": "GET" },
+    "createZone": { "url": "api/v1/warehouses/:id/zones", "method": "POST" },
+    "updateZone": {
+      "url": "api/v1/warehouses/:id/zones/:zoneId",
+      "method": "PUT"
+    },
+    "getStock": { "url": "api/v1/warehouses/:id/stock", "method": "GET" },
+    "getMovements": {
+      "url": "api/v1/warehouses/:id/movements",
+      "method": "GET"
+    }
+  },
+  "items": {
+    "list": { "url": "api/v1/items", "method": "GET" },
+    "create": { "url": "api/v1/items", "method": "POST" },
+    "getById": { "url": "api/v1/items/:id", "method": "GET" },
+    "update": { "url": "api/v1/items/:id", "method": "PUT" },
+    "delete": { "url": "api/v1/items/:id", "method": "DELETE" },
+    "getStock": { "url": "api/v1/items/:id/stock", "method": "GET" },
+    "getMovements": { "url": "api/v1/items/:id/movements", "method": "GET" },
+    "getBatches": { "url": "api/v1/items/:id/batches", "method": "GET" },
+    "adjustStock": { "url": "api/v1/items/:id/adjust-stock", "method": "POST" },
+    "lowStock": { "url": "api/v1/items/low-stock", "method": "GET" },
+    "deadStock": { "url": "api/v1/items/dead-stock", "method": "GET" },
+    "expiring": { "url": "api/v1/items/expiring", "method": "GET" },
+    "scan": { "url": "api/v1/items/scan", "method": "POST" }
+  },
+  "inventory": {
+    "listItems": { "url": "api/v1/inventory/items", "method": "GET" },
+    "createItem": { "url": "api/v1/inventory/items", "method": "POST" },
+    "updateItem": { "url": "api/v1/inventory/items/:id", "method": "PATCH" },
+    "archiveItem": { "url": "api/v1/inventory/items/:id", "method": "DELETE" },
+    "balances": { "url": "api/v1/inventory/balances", "method": "GET" },
+    "lowStock": { "url": "api/v1/inventory/low-stock", "method": "GET" },
+    "movements": { "url": "api/v1/inventory/movements", "method": "GET" },
+    "stockIn": { "url": "api/v1/inventory/stock-in", "method": "POST" },
+    "stockOut": { "url": "api/v1/inventory/stock-out", "method": "POST" }
+  },
+  "categories": {
+    "list": { "url": "api/v1/categories", "method": "GET" },
+    "create": { "url": "api/v1/categories", "method": "POST" },
+    "update": { "url": "api/v1/categories/:id", "method": "PUT" },
+    "delete": { "url": "api/v1/categories/:id", "method": "DELETE" }
+  },
+  "stock": {
+    "transfer": { "url": "api/v1/stock/transfer", "method": "POST" },
+    "movements": { "url": "api/v1/stock/movements", "method": "GET" },
+    "reconcile": { "url": "api/v1/stock/reconcile", "method": "POST" }
+  },
+  "departments": {
+    "list": { "url": "api/v1/departments", "method": "GET" },
+    "create": { "url": "api/v1/departments", "method": "POST" },
+    "getById": { "url": "api/v1/departments/:id", "method": "GET" },
+    "update": { "url": "api/v1/departments/:id", "method": "PUT" },
+    "delete": { "url": "api/v1/departments/:id", "method": "DELETE" },
+    "getRequests": {
+      "url": "api/v1/departments/:id/requests",
+      "method": "GET"
+    },
+    "getBudget": { "url": "api/v1/departments/:id/budget", "method": "GET" }
+  },
+  "requests": {
+    "list": { "url": "api/v1/requests", "method": "GET" },
+    "create": { "url": "api/v1/requests", "method": "POST" },
+    "pending": { "url": "api/v1/requests/pending", "method": "GET" },
+    "getById": { "url": "api/v1/requests/:id", "method": "GET" },
+    "update": { "url": "api/v1/requests/:id", "method": "PUT" },
+    "submit": { "url": "api/v1/requests/:id/submit", "method": "POST" },
+    "approve": { "url": "api/v1/requests/:id/approve", "method": "POST" },
+    "reject": { "url": "api/v1/requests/:id/reject", "method": "POST" },
+    "fulfill": { "url": "api/v1/requests/:id/fulfill", "method": "POST" },
+    "cancel": { "url": "api/v1/requests/:id/cancel", "method": "POST" },
+    "override": { "url": "api/v1/requests/:id/override", "method": "POST" }
+  },
+  "vendors": {
+    "list": { "url": "api/v1/vendors", "method": "GET" },
+    "create": { "url": "api/v1/vendors", "method": "POST" },
+    "compare": { "url": "api/v1/vendors/compare", "method": "GET" },
+    "getById": { "url": "api/v1/vendors/:id", "method": "GET" },
+    "update": { "url": "api/v1/vendors/:id", "method": "PUT" },
+    "patch": { "url": "api/v1/vendors/:id", "method": "PATCH" },
+    "delete": { "url": "api/v1/vendors/:id", "method": "DELETE" },
+    "getOrders": { "url": "api/v1/vendors/:id/orders", "method": "GET" },
+    "getPayments": { "url": "api/v1/vendors/:id/payments", "method": "GET" }
+  },
+  "purchaseOrders": {
+    "list": { "url": "api/v1/purchase-orders", "method": "GET" },
+    "create": { "url": "api/v1/purchase-orders", "method": "POST" },
+    "getById": { "url": "api/v1/purchase-orders/:id", "method": "GET" },
+    "update": { "url": "api/v1/purchase-orders/:id", "method": "PUT" },
+    "patch": { "url": "api/v1/purchase-orders/:id", "method": "PATCH" },
+    "submit": { "url": "api/v1/purchase-orders/:id/submit", "method": "POST" },
+    "approve": {
+      "url": "api/v1/purchase-orders/:id/approve",
+      "method": "POST"
+    },
+    "reject": { "url": "api/v1/purchase-orders/:id/reject", "method": "POST" },
+    "send": { "url": "api/v1/purchase-orders/:id/send", "method": "POST" },
+    "cancel": { "url": "api/v1/purchase-orders/:id/cancel", "method": "POST" },
+    "createGrn": { "url": "api/v1/purchase-orders/:id/grn", "method": "POST" }
+  },
+  "grn": {
+    "list": { "url": "api/v1/grn", "method": "GET" },
+    "getById": { "url": "api/v1/grn/:id", "method": "GET" }
+  },
+  "payments": {
+    "list": { "url": "api/v1/payments", "method": "GET" },
+    "create": { "url": "api/v1/payments", "method": "POST" }
+  },
+  "assets": {
+    "list": { "url": "api/v1/assets", "method": "GET" },
+    "create": { "url": "api/v1/assets", "method": "POST" },
+    "dueMaintenance": {
+      "url": "api/v1/assets/due-maintenance",
+      "method": "GET"
+    },
+    "byUser": { "url": "api/v1/assets/assigned/:userId", "method": "GET" },
+    "history": { "url": "api/v1/assets/:id/history", "method": "GET" },
+    "getById": { "url": "api/v1/assets/:id", "method": "GET" },
+    "update": { "url": "api/v1/assets/:id", "method": "PUT" },
+    "patch": { "url": "api/v1/assets/:id", "method": "PATCH" },
+    "assign": { "url": "api/v1/assets/:id/assign", "method": "POST" },
+    "return": { "url": "api/v1/assets/:id/return", "method": "POST" },
+    "maintenance": { "url": "api/v1/assets/:id/maintenance", "method": "POST" },
+    "dispose": { "url": "api/v1/assets/:id/dispose", "method": "POST" }
+  },
+  "reports": {
+    "dashboard": { "url": "api/v1/reports/dashboard", "method": "GET" },
+    "stockMovements": {
+      "url": "api/v1/reports/stock-movements",
+      "method": "GET"
+    },
+    "departmentConsumption": {
+      "url": "api/v1/reports/department-consumption",
+      "method": "GET"
+    },
+    "stockStatus": { "url": "api/v1/reports/stock-status", "method": "GET" },
+    "lowStock": { "url": "api/v1/reports/low-stock", "method": "GET" },
+    "outOfStock": { "url": "api/v1/reports/out-of-stock", "method": "GET" },
+    "inventoryValuation": {
+      "url": "api/v1/reports/inventory-valuation",
+      "method": "GET"
+    },
+    "topConsumption": {
+      "url": "api/v1/reports/top-consumption",
+      "method": "GET"
+    },
+    "export": { "url": "api/v1/reports/export", "method": "POST" },
+    "savedList": { "url": "api/v1/reports/saved", "method": "GET" },
+    "savedCreate": { "url": "api/v1/reports/saved", "method": "POST" },
+    "savedGet": { "url": "api/v1/reports/saved/:id", "method": "GET" },
+    "savedUpdate": { "url": "api/v1/reports/saved/:id", "method": "PUT" },
+    "savedDelete": { "url": "api/v1/reports/saved/:id", "method": "DELETE" },
+    "savedRun": { "url": "api/v1/reports/saved/:id/run", "method": "POST" }
+  },
+  "auditLogs": {
+    "list": { "url": "api/v1/audit-logs", "method": "GET" },
+    "export": { "url": "api/v1/audit-logs/export", "method": "GET" },
+    "byResource": { "url": "api/v1/audit-logs/:resourceId", "method": "GET" }
+  },
+  "notifications": {
+    "list": { "url": "api/v1/notifications", "method": "GET" },
+    "markRead": { "url": "api/v1/notifications/:id/read", "method": "PUT" },
+    "patchRead": { "url": "api/v1/notifications/:id/read", "method": "PATCH" },
+    "markAllRead": { "url": "api/v1/notifications/read-all", "method": "PUT" },
+    "delete": { "url": "api/v1/notifications/:id", "method": "DELETE" },
+    "getPreferences": {
+      "url": "api/v1/notifications/preferences",
+      "method": "GET"
+    },
+    "updatePreferences": {
+      "url": "api/v1/notifications/preferences",
+      "method": "PUT"
+    }
+  },
+  "apiKeys": {
+    "list": { "url": "api/v1/api-keys", "method": "GET" },
+    "create": { "url": "api/v1/api-keys", "method": "POST" },
+    "getById": { "url": "api/v1/api-keys/:id", "method": "GET" },
+    "update": { "url": "api/v1/api-keys/:id", "method": "PUT" },
+    "rotate": { "url": "api/v1/api-keys/:id/rotate", "method": "POST" },
+    "revoke": { "url": "api/v1/api-keys/:id/revoke", "method": "POST" },
+    "delete": { "url": "api/v1/api-keys/:id", "method": "DELETE" },
+    "usage": { "url": "api/v1/api-keys/:id/usage", "method": "GET" }
+  },
+  "webhooks": {
+    "list": { "url": "api/v1/webhooks", "method": "GET" },
+    "create": { "url": "api/v1/webhooks", "method": "POST" },
+    "getById": { "url": "api/v1/webhooks/:id", "method": "GET" },
+    "update": { "url": "api/v1/webhooks/:id", "method": "PUT" },
+    "rotateSecret": {
+      "url": "api/v1/webhooks/:id/rotate-secret",
+      "method": "POST"
+    },
+    "test": { "url": "api/v1/webhooks/:id/test", "method": "POST" },
+    "deliveries": { "url": "api/v1/webhooks/:id/deliveries", "method": "GET" },
+    "delete": { "url": "api/v1/webhooks/:id", "method": "DELETE" }
+  },
+  "procurement": {
+    "vendors": { "url": "api/v1/procurement/vendors", "method": "GET" },
+    "purchaseOrders": {
+      "url": "api/v1/procurement/purchase-orders",
+      "method": "GET"
+    },
+    "grn": { "url": "api/v1/procurement/grn", "method": "GET" },
+    "grns": { "url": "api/v1/procurement/grns", "method": "GET" },
+    "payments": { "url": "api/v1/procurement/payments", "method": "GET" }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "moduleOrder": [
+    "foundation",
+    "auth",
+    "dashboard",
+    "inventory",
+    "warehouses",
+    "requests",
+    "procurement",
+    "assets",
+    "reports",
+    "settings",
+    "auditNotifications"
+  ],
+  "accentColor": "#4F46E5",
+  "sidebar": "dark"
+}
