@@ -6,6 +6,11 @@ declare global {
     interface User extends AuthUser {}
 
     interface Request {
+      apiKey?: {
+        id: string;
+        organizationId: string;
+        prefix: string;
+      };
       organization?: OrganizationContext;
       rawBody?: Buffer;
       validated?: {

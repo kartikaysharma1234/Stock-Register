@@ -5,6 +5,7 @@ import { planRateLimiter } from "../middlewares/rate-limit.middleware";
 import { assetRouter } from "./asset.routes";
 import { auditRouter } from "./audit.routes";
 import { authRouter } from "./auth.routes";
+import { apiKeyRouter } from "./apiKey.routes";
 import { categoryRouter } from "./category.routes";
 import { departmentRouter } from "./department.routes";
 import { grnRouter } from "./grn.routes";
@@ -147,6 +148,13 @@ apiRouter.use(
   extractOrganization,
   planRateLimiter,
   notificationRouter,
+);
+apiRouter.use(
+  "/api-keys",
+  authenticate,
+  extractOrganization,
+  planRateLimiter,
+  apiKeyRouter,
 );
 apiRouter.use(
   "/audit-logs",

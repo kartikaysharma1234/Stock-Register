@@ -540,6 +540,12 @@ export enum AuditModule {
   API_KEY = "api_key",
 }
 
+export enum ApiKeyStatus {
+  ACTIVE = "active",
+  REVOKED = "revoked",
+  EXPIRED = "expired",
+}
+
 export enum NotificationType {
   LOW_STOCK = "low_stock",
   EXPIRY_ALERT = "expiry_alert",

@@ -1,4 +1,5 @@
 export * from "./auditLog.schema";
+export * from "./apiKey.schema";
 export * from "./asset.schema";
 export * from "./assetLog.schema";
 export * from "./category.schema";
