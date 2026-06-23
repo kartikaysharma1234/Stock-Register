@@ -17,12 +17,17 @@ export const FieldRenderer = ({ field, value, onChange }: FieldRendererProps) =>
 
   if (field.type === "select") {
     return (
-      <FormSelect
-        {...common}
-        onChange={(event) => onChange(field.name, event.target.value)}
-        options={field.options ?? []}
-        value={String(value ?? "")}
-      />
+      <div>
+        <FormSelect
+          {...common}
+          onChange={(event) => onChange(field.name, event.target.value)}
+          options={field.options ?? []}
+          value={String(value ?? "")}
+        />
+        {field.helper ? (
+          <p className="mt-1 text-xs text-app-muted">{field.helper}</p>
+        ) : null}
+      </div>
     );
   }
 
@@ -43,40 +48,55 @@ export const FieldRenderer = ({ field, value, onChange }: FieldRendererProps) =>
 
   if (field.type === "date") {
     return (
-      <FormDatePicker
-        {...common}
-        onChange={(event) => onChange(field.name, event.target.value)}
-        value={String(value ?? "")}
-      />
+      <div>
+        <FormDatePicker
+          {...common}
+          onChange={(event) => onChange(field.name, event.target.value)}
+          value={String(value ?? "")}
+        />
+        {field.helper ? (
+          <p className="mt-1 text-xs text-app-muted">{field.helper}</p>
+        ) : null}
+      </div>
     );
   }
 
   if (field.type === "checkbox") {
     return (
-      <label className="flex items-center gap-2 rounded-md border border-app-border bg-app-surface px-3 py-2 text-sm text-app-primary">
-        <input
-          checked={Boolean(value)}
-          className="h-4 w-4 rounded border-app-border text-app-accent"
-          onChange={(event) => onChange(field.name, event.target.checked)}
-          type="checkbox"
-        />
-        {field.label}
-      </label>
+      <div>
+        <label className="flex items-center gap-2 rounded-md border border-app-border bg-app-surface px-3 py-2 text-sm text-app-primary">
+          <input
+            checked={Boolean(value)}
+            className="h-4 w-4 rounded border-app-border text-app-accent"
+            onChange={(event) => onChange(field.name, event.target.checked)}
+            type="checkbox"
+          />
+          {field.label}
+        </label>
+        {field.helper ? (
+          <p className="mt-1 text-xs text-app-muted">{field.helper}</p>
+        ) : null}
+      </div>
     );
   }
 
   return (
-    <FormInput
-      {...common}
-      onChange={(event) =>
-        onChange(
-          field.name,
-          field.type === "number" ? Number(event.target.value) : event.target.value,
-        )
-      }
-      type={field.type ?? "text"}
-      value={String(value ?? "")}
-    />
+    <div>
+      <FormInput
+        {...common}
+        onChange={(event) =>
+          onChange(
+            field.name,
+            field.type === "number" ? Number(event.target.value) : event.target.value,
+          )
+        }
+        type={field.type ?? "text"}
+        value={String(value ?? "")}
+      />
+      {field.helper ? (
+        <p className="mt-1 text-xs text-app-muted">{field.helper}</p>
+      ) : null}
+    </div>
   );
 };
 

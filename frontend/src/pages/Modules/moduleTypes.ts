@@ -20,6 +20,12 @@ export interface FieldConfig {
   required?: boolean;
   defaultValue?: string | number | boolean;
   options?: Array<{ label: string; value: string }>;
+  dynamicOptions?: {
+    routeKey: string;
+    labelKey?: string;
+    valueKey?: string;
+    query?: Record<string, QueryValue>;
+  };
   helper?: string;
 }
 
@@ -50,6 +56,7 @@ export interface ModuleConfig {
   fields?: FieldConfig[];
   searchPlaceholder?: string;
   newPath?: string;
+  newLabel?: string;
   detailPath?: string;
   emptyTitle?: string;
   emptyDescription?: string;

@@ -724,7 +724,7 @@ export class InventoryRepository {
     warehouseId: string,
     quantity: number,
     costPerUnit: number,
-    session: ClientSession,
+    session?: ClientSession,
     zoneId?: string,
   ) {
     return InventoryBalanceModel.findOneAndUpdate(

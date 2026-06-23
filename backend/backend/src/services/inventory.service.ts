@@ -806,7 +806,7 @@ export class InventoryService {
   }
 
   async stockIn(input: StockChangeInput, session?: ClientSession) {
-    const execute = async (activeSession: ClientSession) => {
+    const execute = async (activeSession?: ClientSession) => {
       const item = await inventoryRepository.findItemDocument(
         input.organizationId,
         input.itemId,
@@ -916,24 +916,14 @@ export class InventoryService {
     };
 
     if (session) return execute(session);
-    const ownSession = await mongoose.startSession();
-    try {
-      let result: Awaited<ReturnType<typeof execute>> | undefined;
-      await ownSession.withTransaction(async () => {
-        result = await execute(ownSession);
-      });
-      if (!result) throw new ApiError(500, "Stock inflow did not complete");
-      return result;
-    } finally {
-      await ownSession.endSession();
-    }
+    return execute();
   }
 
   async stockOut(
     input: StockChangeInput,
     session?: ClientSession,
   ): Promise<StockOutResult> {
-    const execute = async (activeSession: ClientSession) => {
+    const execute = async (activeSession?: ClientSession) => {
       const item = await inventoryRepository.findItemDocument(
         input.organizationId,
         input.itemId,
@@ -1118,16 +1108,7 @@ export class InventoryService {
     };
 
     if (session) return execute(session);
-    const ownSession = await mongoose.startSession();
-    let result: StockOutResult | undefined;
-    try {
-      await ownSession.withTransaction(async () => {
-        result = await execute(ownSession);
-      });
-    } finally {
-      await ownSession.endSession();
-    }
-    if (!result) throw new ApiError(500, "Stock outflow did not complete");
+    const result = await execute();
     await this.sendLowStockAlert(
       input.organizationId,
       input.warehouseId,

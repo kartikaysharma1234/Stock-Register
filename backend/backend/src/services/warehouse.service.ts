@@ -144,37 +144,24 @@ export class WarehouseService {
     const organizationId = this.organizationId(actor, data.organizationId);
     await this.validateManager(organizationId, data.managerId);
 
-    const session = await mongoose.startSession();
-    let warehouse: HydratedDocument<IWarehouse> | undefined;
-    try {
-      await session.withTransaction(async () => {
-        warehouse = await warehouseRepository.create(
-          organizationId,
-          {
-            name: data.name,
-            code: data.code,
-            type: data.type,
-            address: data.address,
-            managerId: data.managerId,
-            contactPhone: data.contactPhone,
-            isActive: data.isActive,
-          },
-          session,
-        );
-        if (data.managerId) {
-          await warehouseRepository.assignManager(
-            organizationId,
-            warehouse.id,
-            data.managerId,
-            session,
-          );
-        }
-      });
-    } finally {
-      await session.endSession();
-    }
-    if (!warehouse) {
-      throw new ApiError(500, "Warehouse creation did not complete");
+    const warehouse = await warehouseRepository.create(
+      organizationId,
+      {
+        name: data.name,
+        code: data.code,
+        type: data.type,
+        address: data.address,
+        managerId: data.managerId,
+        contactPhone: data.contactPhone,
+        isActive: data.isActive,
+      },
+    );
+    if (data.managerId) {
+      await warehouseRepository.assignManager(
+        organizationId,
+        warehouse.id,
+        data.managerId,
+      );
     }
     await auditService.record(
       { actorId: actor.id, organizationId },

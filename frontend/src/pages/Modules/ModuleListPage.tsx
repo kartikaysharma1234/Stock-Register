@@ -144,7 +144,9 @@ export const ModuleListPage = ({
         </SecondaryButton>
         {config.newPath ? (
           <Link to={config.newPath}>
-            <PrimaryButton leftIcon={<Plus className="h-4 w-4" />}>New</PrimaryButton>
+            <PrimaryButton leftIcon={<Plus className="h-4 w-4" />}>
+              {config.newLabel ?? "New"}
+            </PrimaryButton>
           </Link>
         ) : null}
       </PageHeader>
