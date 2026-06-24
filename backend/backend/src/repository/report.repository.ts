@@ -11,6 +11,7 @@ import {
 import {
   InventoryBalanceModel,
   ISavedReport,
+  ItemModel,
   PurchaseOrderModel,
   SavedReportModel,
   StockMovementModel,
@@ -399,12 +400,18 @@ export class ReportRepository {
 
   async dashboardSummary(organizationId: string, from: Date, to: Date) {
     const [
+      totalItems,
       stockHealth,
       movementTotals,
       requestTotals,
       purchaseTotals,
       topConsumption,
     ] = await Promise.all([
+      ItemModel.countDocuments({
+        organizationId: toObjectId(organizationId),
+        isActive: true,
+        isDeleted: { $ne: true },
+      }),
       InventoryBalanceModel.aggregate([
         ...stockStatusPipeline(organizationId),
         {
@@ -468,6 +475,7 @@ export class ReportRepository {
 
     return {
       stock: {
+        totalItems,
         inStock: stockByStatus.in_stock?.count ?? 0,
         lowStock: stockByStatus.low_stock?.count ?? 0,
         outOfStock: stockByStatus.out_of_stock?.count ?? 0,

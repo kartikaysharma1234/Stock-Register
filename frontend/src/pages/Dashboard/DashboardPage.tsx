@@ -12,6 +12,7 @@ type ApiRecord = Record<string, unknown>;
 
 interface DashboardSummary {
   stock?: {
+    totalItems?: number;
     inStock?: number;
     lowStock?: number;
     outOfStock?: number;
@@ -136,15 +137,11 @@ const reportRange = () => {
 const buildKpis = (summary?: DashboardSummary): Kpi[] => {
   const stock = summary?.stock ?? {};
   const requests = summary?.requests ?? {};
-  const stockRecords =
-    numberValue(stock.inStock) +
-    numberValue(stock.lowStock) +
-    numberValue(stock.outOfStock);
 
   return [
     {
       label: "Total Items",
-      value: formatNumber(stockRecords),
+      value: formatNumber(numberValue(stock.totalItems)),
       caption: `${formatNumber(numberValue(stock.totalQuantity))} units tracked`,
       icon: "stock",
     },
