@@ -1,4 +1,4 @@
-import mongoose, { HydratedDocument } from "mongoose";
+import { HydratedDocument } from "mongoose";
 import {
   CounterType,
   GrnItemCondition,
@@ -24,6 +24,7 @@ import { IPurchaseOrder, IVendorAddress, IVendorBankDetails } from "../repositor
 import { userRepository } from "../repository/user.repository";
 import { AuthUser } from "../types/auth";
 import { ApiError } from "../utils/api-error";
+import { runWithOptionalTransaction } from "../utils/mongo-transaction";
 import { auditService } from "./audit.service";
 import { inventoryService } from "./inventory.service";
 import { notificationService } from "./notification.service";
@@ -845,10 +846,8 @@ export class ProcurementService {
     requestedOrganizationId?: string,
   ) {
     const organizationId = this.organizationId(actor, requestedOrganizationId);
-    const session = await mongoose.startSession();
-    let createdGrnId: string | undefined;
-    try {
-      await session.withTransaction(async () => {
+    const createdGrnId = await runWithOptionalTransaction(
+      async (session) => {
         const purchaseOrder = await this.repository.findPurchaseOrderDocument(
           organizationId,
           purchaseOrderId,
@@ -929,7 +928,6 @@ export class ProcurementService {
           },
           session,
         );
-        createdGrnId = grn.id;
         for (const line of grnItems) {
           if (
             line.receivedQuantity <= 0 ||
@@ -959,10 +957,31 @@ export class ProcurementService {
         const fullyReceived = purchaseOrder.items.every(
           (item) => item.receivedQuantity >= item.quantity,
         );
-        purchaseOrder.status = fullyReceived
+        const nextStatus = fullyReceived
           ? PurchaseOrderStatus.RECEIVED
           : PurchaseOrderStatus.PARTIALLY_RECEIVED;
-        await purchaseOrder.save({ session });
+        const updatedPurchaseOrder = await this.repository.updatePurchaseOrder(
+          organizationId,
+          purchaseOrder.id,
+          {
+            items: purchaseOrder.items.map((item) => ({
+              itemId: item.itemId,
+              variantId: item.variantId,
+              quantity: item.quantity,
+              receivedQuantity: item.receivedQuantity,
+              unitCost: item.unitCost,
+              taxRate: item.taxRate,
+              totalCost: item.totalCost,
+              expectedDeliveryDate: item.expectedDeliveryDate,
+              notes: item.notes,
+            })),
+            status: nextStatus,
+          },
+          session,
+        );
+        if (!updatedPurchaseOrder) {
+          throw new ApiError(409, "Purchase order receipt state changed");
+        }
         if (fullyReceived && !purchaseOrder.vendorStatsCounted) {
           const vendor = await this.repository.findVendor(
             organizationId,
@@ -999,11 +1018,9 @@ export class ProcurementService {
             after: grn.toObject(),
           },
         );
-      });
-    } finally {
-      await session.endSession();
-    }
-    if (!createdGrnId) throw new ApiError(500, "GRN was not created");
+        return grn.id;
+      },
+    );
     const grn = await this.repository.findGrn(organizationId, createdGrnId);
     if (!grn) throw new ApiError(500, "GRN was not found after creation");
     await this.notifyRoles(

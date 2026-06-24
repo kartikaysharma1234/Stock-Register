@@ -442,6 +442,12 @@ export const moduleConfigs = {
       { label: "Approve", routeKey: "purchaseOrders.approve", tone: "primary" },
       { label: "Reject", routeKey: "purchaseOrders.reject", tone: "danger", payload: { reason: "Rejected from frontend" } },
       { label: "Send", routeKey: "purchaseOrders.send" },
+      {
+        label: "Receive Goods",
+        path: "/purchase-orders/:id/grn/new",
+        tone: "primary",
+        statuses: ["approved", "sent_to_vendor", "partially_received"],
+      },
       { label: "Cancel", routeKey: "purchaseOrders.cancel", tone: "danger", payload: { reason: "Cancelled from frontend" } },
     ],
   },

@@ -10,6 +10,7 @@ import {
 import { MainWindow } from "../components/layouts/MainWindow";
 import { AuthPage } from "../pages/Auth/AuthPage";
 import { DashboardPage } from "../pages/Dashboard/DashboardPage";
+import { GrnFormPage } from "../pages/Modules/GrnFormPage";
 import { BillingSettingsPage } from "../pages/Modules/BillingSettingsPage";
 import { CustomReportPage } from "../pages/Modules/CustomReportPage";
 import { InventoryHubPage } from "../pages/Modules/InventoryHubPage";
@@ -159,6 +160,7 @@ export const router = createBrowserRouter([
       { path: "/vendors/:id/payments", element: relation("vendorPayments") },
       { path: "/purchase-orders", element: list("purchaseOrders") },
       { path: "/purchase-orders/new", element: form("purchaseOrders", "/purchase-orders") },
+      { path: "/purchase-orders/:id/grn/new", element: <GrnFormPage /> },
       { path: "/purchase-orders/:id", element: detail("purchaseOrders", "/purchase-orders") },
       { path: "/grn", element: list("grn") },
       { path: "/grn/:id", element: detail("grn", "/grn") },

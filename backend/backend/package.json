@@ -17,6 +17,7 @@
     "migrate:module10": "tsx src/scripts/migrate-module10-reporting.ts",
     "migrate:module11": "tsx src/scripts/migrate-module11-api-keys.ts",
     "migrate:module12": "tsx src/scripts/migrate-module12-webhooks.ts",
+    "repair:po-receipts": "tsx src/scripts/repair-purchase-order-receipts.ts",
     "test": "jest --runInBand"
   },
   "dependencies": {

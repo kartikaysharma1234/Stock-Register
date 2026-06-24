@@ -38,10 +38,12 @@ export interface ColumnConfig {
 
 export interface ActionConfig {
   label: string;
-  routeKey: string;
+  routeKey?: string;
+  path?: string;
   tone?: "primary" | "secondary" | "danger";
   confirm?: string;
   payload?: Record<string, QueryValue>;
+  statuses?: string[];
 }
 
 export interface ModuleConfig {

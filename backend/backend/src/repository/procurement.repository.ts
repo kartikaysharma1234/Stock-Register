@@ -383,7 +383,7 @@ export class ProcurementRepository {
   markVendorStatsCounted(
     organizationId: string,
     purchaseOrderId: string,
-    session: ClientSession,
+    session?: ClientSession,
   ) {
     return PurchaseOrderModel.findOneAndUpdate(
       {

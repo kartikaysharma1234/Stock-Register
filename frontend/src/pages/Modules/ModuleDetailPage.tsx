@@ -26,9 +26,25 @@ const ActionButton = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const id = getRecordId(record);
+  const status = String(record.status ?? "").toLowerCase();
+
+  if (action.statuses?.length && !action.statuses.includes(status)) {
+    return null;
+  }
+
+  if (action.path) {
+    const path = action.path.replace(":id", id);
+    const button =
+      action.tone === "primary" ? (
+        <PrimaryButton>{action.label}</PrimaryButton>
+      ) : (
+        <SecondaryButton>{action.label}</SecondaryButton>
+      );
+    return <Link to={path}>{button}</Link>;
+  }
 
   const runAction = async () => {
-    if (!id) return;
+    if (!id || !action.routeKey) return;
     setLoading(true);
     try {
       await request<unknown>(getRoute(action.routeKey), {
@@ -144,7 +160,7 @@ export const ModuleDetailPage = ({ config, backTo }: ModuleDetailPageProps) => {
             {config.actions.map((action) => (
               <ActionButton
                 action={action}
-                key={action.routeKey}
+                key={action.routeKey ?? action.path ?? action.label}
                 onComplete={loadRecord}
                 record={record}
               />
