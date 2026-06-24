@@ -610,7 +610,7 @@ export class InventoryRepository {
     itemId: string,
     warehouseId: string,
     quantity: number,
-    session: ClientSession,
+    session?: ClientSession,
     zoneId?: string,
   ) {
     return InventoryBalanceModel.findOneAndUpdate(
@@ -674,7 +674,7 @@ export class InventoryRepository {
     itemId: string,
     warehouseId: string,
     quantity: number,
-    session: ClientSession,
+    session?: ClientSession,
     zoneId?: string,
   ) {
     return InventoryBalanceModel.findOneAndUpdate(

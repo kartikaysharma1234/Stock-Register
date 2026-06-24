@@ -1,4 +1,4 @@
-import mongoose, { ClientSession, HydratedDocument, Types } from "mongoose";
+import { ClientSession, HydratedDocument, Types } from "mongoose";
 import {
   CounterType,
   NotificationType,
@@ -20,6 +20,7 @@ import { IStockRequest } from "../repository/schemas";
 import { userRepository } from "../repository/user.repository";
 import { AuthUser } from "../types/auth";
 import { ApiError } from "../utils/api-error";
+import { runWithOptionalTransaction } from "../utils/mongo-transaction";
 import { auditService } from "./audit.service";
 import { inventoryService } from "./inventory.service";
 import { notificationService } from "./notification.service";
@@ -310,16 +311,14 @@ export class RequestService {
       data.warehouseId,
       data.items,
     );
-    const session = await mongoose.startSession();
-    let request: RequestDocument | undefined;
-    try {
-      await session.withTransaction(async () => {
+    const request = await runWithOptionalTransaction(
+      async (session) => {
         const requestNumber = await counterRepository.nextNumber(
           organizationId,
           CounterType.STOCK_REQUEST,
           session,
         );
-        request = await requestRepository.create(
+        return requestRepository.create(
           {
             organizationId,
             requestNumber,
@@ -337,11 +336,8 @@ export class RequestService {
           },
           session,
         );
-      });
-    } finally {
-      await session.endSession();
-    }
-    if (!request) throw new ApiError(500, "Request could not be created");
+      },
+    );
     await auditService.record(
       { actorId: actor.id, organizationId },
       {
@@ -641,10 +637,8 @@ export class RequestService {
       throw new ApiError(403, "Store approval is outside your scope");
     }
 
-    const session = await mongoose.startSession();
-    const result: { updated?: RequestDocument } = {};
-    try {
-      await session.withTransaction(async () => {
+    const updated = await runWithOptionalTransaction(
+      async (session) => {
         const request = await requestRepository.findForUpdate(
           organizationId,
           id,
@@ -701,13 +695,9 @@ export class RequestService {
           session,
         );
         if (!updated) throw new ApiError(409, "Request approval state changed");
-        result.updated = updated;
-      });
-    } finally {
-      await session.endSession();
-    }
-    const updated = result.updated;
-    if (!updated) throw new ApiError(409, "Request could not be approved");
+        return updated;
+      },
+    );
     await Promise.all([
       this.notifyStatus(
         initial.requestedBy.toString(),
@@ -731,7 +721,7 @@ export class RequestService {
   private async releaseCommitments(
     organizationId: string,
     request: RequestDocument,
-    session: ClientSession,
+    session?: ClientSession,
   ) {
     if (request.stockReserved) {
       for (const line of request.lines) {
@@ -786,10 +776,8 @@ export class RequestService {
         this.canApproveStore(actor, initial));
     if (!allowed) throw new ApiError(403, "Request rejection is outside your scope");
 
-    const session = await mongoose.startSession();
-    const result: { updated?: RequestDocument } = {};
-    try {
-      await session.withTransaction(async () => {
+    const updated = await runWithOptionalTransaction(
+      async (session) => {
         const request = await requestRepository.findForUpdate(
           organizationId,
           id,
@@ -821,13 +809,9 @@ export class RequestService {
           session,
         );
         if (!updated) throw new ApiError(409, "Request status changed");
-        result.updated = updated;
-      });
-    } finally {
-      await session.endSession();
-    }
-    const updated = result.updated;
-    if (!updated) throw new ApiError(409, "Request could not be rejected");
+        return updated;
+      },
+    );
     await Promise.all([
       this.notifyStatus(initial.requestedBy.toString(), organizationId, updated),
       auditService.record(
@@ -869,10 +853,8 @@ export class RequestService {
       throw new ApiError(409, "Request is not ready for fulfillment");
     }
 
-    const session = await mongoose.startSession();
-    const result: { updated?: RequestDocument } = {};
-    try {
-      await session.withTransaction(async () => {
+    const updated = await runWithOptionalTransaction(
+      async (session) => {
         const request = await requestRepository.findForUpdate(
           organizationId,
           id,
@@ -1017,13 +999,9 @@ export class RequestService {
           session,
         );
         if (!updated) throw new ApiError(409, "Request fulfillment state changed");
-        result.updated = updated;
-      });
-    } finally {
-      await session.endSession();
-    }
-    const updated = result.updated;
-    if (!updated) throw new ApiError(409, "Request could not be fulfilled");
+        return updated;
+      },
+    );
     await Promise.all([
       this.notifyStatus(initial.requestedBy.toString(), organizationId, updated),
       inventoryService.alertLowStockForWarehouse(
@@ -1068,10 +1046,8 @@ export class RequestService {
     if (terminalStatuses.has(initial.status)) {
       throw new ApiError(409, "Request is already closed");
     }
-    const session = await mongoose.startSession();
-    const result: { updated?: RequestDocument } = {};
-    try {
-      await session.withTransaction(async () => {
+    const updated = await runWithOptionalTransaction(
+      async (session) => {
         const request = await requestRepository.findForUpdate(
           organizationId,
           id,
@@ -1102,13 +1078,9 @@ export class RequestService {
           session,
         );
         if (!updated) throw new ApiError(409, "Request status changed");
-        result.updated = updated;
-      });
-    } finally {
-      await session.endSession();
-    }
-    const updated = result.updated;
-    if (!updated) throw new ApiError(409, "Request could not be cancelled");
+        return updated;
+      },
+    );
     await Promise.all([
       this.notifyStatus(initial.requestedBy.toString(), organizationId, updated),
       auditService.record(

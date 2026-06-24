@@ -175,7 +175,7 @@ export class DepartmentRepository {
     organizationId: string,
     departmentId: string,
     amount: number,
-    session: ClientSession,
+    session?: ClientSession,
   ) {
     if (amount <= 0) {
       return this.findDocument(organizationId, departmentId, session);
@@ -214,7 +214,7 @@ export class DepartmentRepository {
     departmentId: string,
     committedAmount: number,
     usedAmount: number,
-    session: ClientSession,
+    session?: ClientSession,
   ) {
     return DepartmentModel.findOneAndUpdate(
       {
@@ -237,7 +237,7 @@ export class DepartmentRepository {
     organizationId: string,
     departmentId: string,
     amount: number,
-    session: ClientSession,
+    session?: ClientSession,
   ) {
     if (amount <= 0) {
       return this.findDocument(organizationId, departmentId, session);
@@ -274,7 +274,7 @@ export class DepartmentRepository {
     organizationId: string,
     departmentId: string,
     amount: number,
-    session: ClientSession,
+    session?: ClientSession,
   ) {
     if (amount <= 0) {
       return this.findDocument(organizationId, departmentId, session);

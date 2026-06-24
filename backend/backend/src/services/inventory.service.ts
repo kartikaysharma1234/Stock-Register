@@ -1128,7 +1128,7 @@ export class InventoryService {
       quantity: number;
       zoneId?: string;
     },
-    session: ClientSession,
+    session?: ClientSession,
   ) {
     const item = await inventoryRepository.findItemDocument(
       input.organizationId,
@@ -1190,7 +1190,7 @@ export class InventoryService {
       quantity: number;
       zoneId?: string;
     },
-    session: ClientSession,
+    session?: ClientSession,
   ) {
     const balance = await inventoryRepository.releaseReservedBalance(
       input.organizationId,
