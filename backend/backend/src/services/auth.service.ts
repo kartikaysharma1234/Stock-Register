@@ -151,7 +151,7 @@ export class AuthService {
       template: "forgotPassword",
       variables: {
         name: user.name,
-        resetUrl: `${config.appUrl}/reset-password?token=${token}`,
+        resetUrl: `${config.appUrl}/auth/reset-password?token=${token}`,
       },
     });
   }
@@ -187,7 +187,7 @@ export class AuthService {
       template: "verifyEmail",
       variables: {
         name: user.name,
-        verifyUrl: `${config.appUrl}/verify-email?token=${token}`,
+        verifyUrl: `${config.appUrl}/auth/verify-email?token=${token}`,
       },
     });
   }
@@ -232,7 +232,7 @@ export class AuthService {
       template: "inviteTeamMember",
       variables: {
         name: user.name,
-        inviteUrl: `${config.appUrl}/accept-invite?token=${inviteToken}`,
+        inviteUrl: `${config.appUrl}/auth/accept-invite?token=${inviteToken}`,
       },
     });
     return user;
