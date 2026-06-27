@@ -15,8 +15,19 @@ export const sendMail = (options: {
   to: string;
   subject: string;
   html: string;
-}) =>
-  mailTransport.sendMail({
+}) => {
+  const actualTo =
+    config.deployment === "local" && config.smtp.defaultToEmail
+      ? config.smtp.defaultToEmail
+      : options.to;
+
+  return mailTransport.sendMail({
     from: config.mailFrom,
     ...options,
+    to: actualTo,
+    headers:
+      actualTo !== options.to
+        ? { "X-Original-To": options.to }
+        : undefined,
   });
+};

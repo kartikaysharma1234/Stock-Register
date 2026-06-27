@@ -3,7 +3,8 @@
     <mj-section background-color="#ffffff" padding="32px">
       <mj-column>
         <mj-text font-size="22px" font-weight="bold">Welcome to Stock Register</mj-text>
-        <mj-text>Hello {{name}}, you have been invited to join an inventory management workspace.</mj-text>
+        <mj-text>Hello {{name}}, you have been invited to join an inventory management workspace as {{role}}.</mj-text>
+        <mj-text>Accept the invitation to set your password and activate your account.</mj-text>
         <mj-button background-color="#2563eb" href="{{inviteUrl}}">Accept invitation</mj-button>
       </mj-column>
     </mj-section>

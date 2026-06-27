@@ -1,0 +1,11 @@
+<mjml>
+  <mj-body background-color="#f5f7fb">
+    <mj-section background-color="#ffffff" padding="32px">
+      <mj-column>
+        <mj-text font-size="22px" font-weight="bold">Your account is active</mj-text>
+        <mj-text>Hello {{name}}, your Stock Register account is ready.</mj-text>
+        <mj-button background-color="#2563eb" href="{{loginUrl}}">Sign in</mj-button>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

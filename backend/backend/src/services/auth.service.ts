@@ -16,6 +16,7 @@ import { IUser } from "../repository/schemas";
 import { userRepository } from "../repository/user.repository";
 import { AuthUser } from "../types/auth";
 import { ApiError } from "../utils/api-error";
+import { logger } from "../utils/logger";
 import { auditService } from "./audit.service";
 import { notificationService } from "./notification.service";
 import { permissionService } from "./permission.service";
@@ -212,9 +213,10 @@ export class AuthService {
       password: generateSecureToken(),
     });
     const inviteToken = generateSecureToken();
+    const organizationId = user.organizationId?.toString();
     await userRepository.update(
       user.id,
-      user.organizationId?.toString(),
+      organizationId,
       {
         invitedBy: actor.id,
         invitationTokenHash: hashToken(inviteToken),
@@ -224,17 +226,43 @@ export class AuthService {
       },
     );
     await notificationService.notifyUser({
-      organizationId: user.organizationId?.toString(),
+      organizationId,
       userId: user.id,
       type: NotificationType.INVITATION,
       title: "You have been invited to Stock Register",
       message: "Complete your invitation to activate your account.",
       template: "inviteTeamMember",
+      referenceType: "User",
+      referenceId: user.id,
       variables: {
         name: user.name,
+        role: user.role,
         inviteUrl: `${config.appUrl}/auth/accept-invite?token=${inviteToken}`,
       },
     });
+    void notificationService
+      .notifyUser({
+        organizationId,
+        userId: actor.id,
+        type: NotificationType.SYSTEM,
+        title: `Invitation sent to ${user.name}`,
+        message: `${user.email} has been invited as ${user.role}.`,
+        template: "userInvitationSent",
+        referenceType: "User",
+        referenceId: user.id,
+        variables: {
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        },
+      })
+      .catch((error) =>
+        logger.error("Failed to queue user invitation confirmation", {
+          actorId: actor.id,
+          invitedUserId: user.id,
+          error,
+        }),
+      );
     return user;
   }
 
@@ -249,6 +277,27 @@ export class AuthService {
     user.invitationTokenHash = undefined;
     user.invitationExpiresAt = undefined;
     await user.save();
+    void notificationService
+      .notifyUser({
+        organizationId: user.organizationId?.toString(),
+        userId: user._id.toString(),
+        type: NotificationType.SYSTEM,
+        title: "Your Stock Register account is active",
+        message: "Your account is ready. You can now sign in.",
+        template: "accountActivated",
+        referenceType: "User",
+        referenceId: user._id.toString(),
+        variables: {
+          name: user.name,
+          loginUrl: `${config.appUrl}/auth/login`,
+        },
+      })
+      .catch((error) =>
+        logger.error("Failed to queue account activation notification", {
+          userId: user._id.toString(),
+          error,
+        }),
+      );
     return user;
   }
 }
