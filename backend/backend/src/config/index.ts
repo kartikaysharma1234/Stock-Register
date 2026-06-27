@@ -41,6 +41,10 @@ const envSchema = z.object({
     .enum(["true", "false"])
     .default("false")
     .transform((value) => value === "true"),
+  SMTP_REQUIRE_TLS: z
+    .enum(["true", "false"])
+    .optional()
+    .transform((value) => (value === undefined ? undefined : value === "true")),
   SMTP_USER: optionalEnvString,
   SMTP_PASS: optionalEnvString,
   SMTP_DEFAULT_TO_EMAIL: optionalEnvEmail,
@@ -87,6 +91,9 @@ export const config = {
     host: env.SMTP_HOST,
     port: env.SMTP_PORT,
     secure: env.SMTP_SECURE,
+    requireTls:
+      env.SMTP_REQUIRE_TLS ??
+      (env.DEPLOYMENT === "cloud" && env.SMTP_PORT !== 465),
     user: env.SMTP_USER,
     pass: env.SMTP_PASS,
     defaultToEmail: env.SMTP_DEFAULT_TO_EMAIL,
